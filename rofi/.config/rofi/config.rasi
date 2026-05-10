@@ -1,0 +1,9 @@
+configuration {
+    drun-display-format: "{icon} {name}";
+    font: "JetBrainsMono NFM SemiBold 10";    
+    modi: "drun";
+    show-icons: true;
+    display-drun: "";
+}
+
+@theme "~/.config/rofi/theme.rasi"
