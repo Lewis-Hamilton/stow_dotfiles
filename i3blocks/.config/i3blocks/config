@@ -38,6 +38,11 @@ min_width=850
 align=center
 separator=false
 
+[flatpak_updates]
+command=$SCRIPT_DIR/flatpak-updates/flatpak-updates
+interval=600
+markup=pango
+
 [updates]
 command=$SCRIPT_DIR/dnf-updates/dnf-updates
 #label=Updates
