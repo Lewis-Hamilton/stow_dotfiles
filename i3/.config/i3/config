@@ -242,6 +242,9 @@ for_window [class="^.*"] border pixel 0
 # default_border pixel 1
 # default_floating_border pixel 1
 
+for_window [class="URxvt"] border pixel 1
+client.focused #ffffff #ffffff #ffffff #ffffff #ffffff 
+
 # Set a persistent wallpaper using feh
 exec --no-startup-id feh --bg-fill /usr/share/backgrounds/iron-man-3.jpg
 
