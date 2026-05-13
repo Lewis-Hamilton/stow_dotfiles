@@ -61,6 +61,7 @@ exec --no-startup-id dex-autostart --autostart --environment i3
 # added this for locking screen
 #bindsym $mod+l exec loginctl lock-session
 bindsym $mod+l exec --no-startup-id i3lock -i Downloads/lockscreen.png
+bindsym $mod+s exec --no-startup-id systemctl suspend
 
 # launch flameshot
 bindsym Print exec --no-startup-id flameshot gui
@@ -139,7 +140,8 @@ bindsym $mod+v split v
 bindsym $mod+f fullscreen toggle
 
 # change container layout (stacked, tabbed, toggle split)
-bindsym $mod+s layout stacking
+# turned this off because I don't use it, want mod+s for suspend
+# bindsym $mod+s layout stacking
 bindsym $mod+w layout tabbed
 bindsym $mod+e layout toggle split
 
