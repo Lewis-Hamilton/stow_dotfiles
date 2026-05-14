@@ -1,0 +1,20 @@
+#!/bin/bash
+
+source ~/.my_colors.sh
+
+# This script gets the number of available DNF updates
+updates=$(dnf check-update -q | wc -l)
+
+if [ "$updates" -eq 0 ]; then
+	color=$MY_GREEN
+elif [[ "$updates" -gt 0 && "$updates" -le 5 ]]; then
+	color=$MY_YELLOW
+elif [[ "$updates" -gt 5 && "$updates" -le 10 ]]; then
+	color=$MY_ORANGE
+else
+	color=$MY_RED
+fi
+
+output="<span color=\"$color\">$updates </span><span color=\"$color\" size='large'>󰚰</span>"
+
+echo "$output"
