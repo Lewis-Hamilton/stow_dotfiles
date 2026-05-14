@@ -1,0 +1,32 @@
+#!/bin/bash
+
+source ~/.my_colors.sh
+
+# Max speed was determined by maxing the cpu and seeing how fast it spun.
+max_speed=3400
+fan_speed=$(sensors | grep -i fan | head -n 1 | awk '{print $2}')
+
+if [ "$fan_speed" -eq "0" ]; then
+    fan_usage="OFF"
+    color=$MY_GREEN
+# If the fan speed is greater than my expected max
+# Output the rpm so I can adjust the script
+elif [ "$fan_speed" -gt "3400" ]; then
+    fan_usage=$fan_speed
+else
+    fan_usage=$(echo "scale=2; ($fan_speed / $max_speed) * 100"  | bc | awk '{printf "%.0f", $1}')
+
+    if [ "$fan_usage" -le 55 ]; then
+        color=$MY_GREEN
+    elif [[ "$fan_usage" -gt 55 && "$fan_usage" -le 70 ]]; then
+        color=$MY_YELLOW
+    elif [[ "$fan_usage" -gt 70 && "$fan_usage" -le 85 ]]; then
+        color=$MY_ORANGE
+    else
+        color=$MY_RED
+    fi
+
+    fan_usage=$fan_usage"%"
+fi
+
+echo "<span color=\"$color\">$fan_usage </span><span color=\"$color\" size='large'>󰈐</span>"
