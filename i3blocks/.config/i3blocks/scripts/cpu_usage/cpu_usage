@@ -1,0 +1,30 @@
+#!/bin/bash
+
+source ~/.my_colors.sh
+
+cpu_usage=$(top -bn1 | grep "Cpu(s)" | awk '{printf "%.2f", 100 - $8}')
+
+formatted_usage=$(echo "$cpu_usage" | awk '{
+    # $1 is the number from the echo command
+    if ($1 > 10) {
+        printf "%.0f", $1 
+    } else {
+        printf "%.2f", $1 
+    }
+}')
+
+whole_usage=$(echo "$cpu_usage" | awk '{
+    printf "%.0f", $1
+}')
+
+if [ "$whole_usage" -le 50 ]; then
+        color=$MY_GREEN
+elif [[ "$whole_usage" -gt 50 && "$whole_usage" -le 70 ]]; then
+        color=$MY_YELLOW
+elif [[ "$whole_usage" -gt 70 && "$whole_usage" -le 85 ]]; then
+        color=$MY_ORANGE
+else
+        color=$MY_RED
+fi
+
+echo "<span size='large'> </span><span color=\"$color\">$formatted_usage% </span><span color=\"$color\" size='large'></span>"
