@@ -18,4 +18,4 @@ else
         color=$MY_RED
 fi
 
-echo "<span color=\"$color\">$formatted_temperature°C </span><span color=\"$color\" size='large'></span>"
+echo "<span size='large'>󰟀 </span><span color=\"$color\">$formatted_temperature°C </span><span color=\"$color\" size='large'></span>"

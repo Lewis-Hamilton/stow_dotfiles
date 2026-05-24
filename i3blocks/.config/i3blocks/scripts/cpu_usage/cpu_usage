@@ -27,4 +27,5 @@ else
         color=$MY_RED
 fi
 
-echo "<span size='large'> </span><span color=\"$color\">$formatted_usage% </span><span color=\"$color\" size='large'></span>"
+echo "<span color=\"$color\" size='large'>󰓅</span><span color=\"$color\"> $formatted_usage%</span>"
+# echo "<span color=\"$color\">$formatted_usage% </span><span color=\"$color\" size='large'></span>"
