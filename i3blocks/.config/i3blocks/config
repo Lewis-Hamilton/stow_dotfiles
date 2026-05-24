@@ -56,7 +56,7 @@ markup=pango
 # See the script for details.
 
 [volume]
-command=$SCRIPT_DIR/my-volume/my-volume
+command=$SCRIPT_DIR/volume/volume
 interval=once
 signal=10
 markup=pango
@@ -108,14 +108,8 @@ command=$SCRIPT_DIR/fan_speed/fan_speed
 interval=15
 markup=pango
 
-[cpu_usage]
-command=$SCRIPT_DIR/cpu_usage/cpu_usage
-interval=15
-markup=pango
-separator=false
-# Add color changing based on temp
-[temperature]
-command=$SCRIPT_DIR/temperature/temperature
+[cpu]
+command=$SCRIPT_DIR/cpu/cpu
 interval=15
 markup=pango
 
@@ -127,7 +121,7 @@ interval=10
 #
 # The battery instance defaults to 0.
 [battery]
-command=$SCRIPT_DIR/battery/launch_battery.sh
+command=$SCRIPT_DIR/battery/battery
 interval=30
 
 # Generic media player support

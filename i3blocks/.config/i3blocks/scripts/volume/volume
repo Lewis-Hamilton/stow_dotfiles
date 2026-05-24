@@ -1,0 +1,23 @@
+#!/bin/bash
+
+STATUS=$(wpctl get-volume @DEFAULT_AUDIO_SINK@)
+
+if echo "$STATUS" | grep -q '\[MUTED\]'; then
+    volume=""
+    icon="󰖁"
+else
+    VOLUME_PERCENT=$(echo "$STATUS" | awk '/Volume/ {printf "%.0f", $2 * 100}')
+    volume="${VOLUME_PERCENT}%"
+    if [ "$VOLUME_PERCENT" -le 50 ]; then
+	icon=" 󰖀"
+    elif [ "$VOLUME_PERCENT" -gt 100 ]; then
+	volume="100%"
+	icon=" 󰕾"
+    else 
+	icon=" 󰕾"
+    fi 
+fi
+
+output="$volume<span size='large'>$icon</span>"
+
+echo "$output"

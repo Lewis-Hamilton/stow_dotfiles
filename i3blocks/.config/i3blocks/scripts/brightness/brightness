@@ -1,0 +1,5 @@
+#!/bin/bash
+
+PERCENT=$(brightnessctl info | grep -oP '\(\K[0-9]+(?=%\))')
+
+echo "$PERCENT% <span size='large'>󰖨</span>" 
