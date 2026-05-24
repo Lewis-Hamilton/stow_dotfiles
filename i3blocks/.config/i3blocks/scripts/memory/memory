@@ -14,4 +14,4 @@ else
 	color=$MY_RED
 fi
 
-echo "<span color=\"$color\">${RAM_PERCENT}% </span><span color=\"$color\" size='large'></span>"
+echo "<span color=\"$color\">${RAM_PERCENT}% </span><span color=\"$color\" size='large'>󰧑</span>"
