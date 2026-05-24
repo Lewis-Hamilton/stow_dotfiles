@@ -108,14 +108,8 @@ command=$SCRIPT_DIR/fan_speed/fan_speed
 interval=15
 markup=pango
 
-[cpu_usage]
-command=$SCRIPT_DIR/cpu_usage/cpu_usage
-interval=15
-markup=pango
-separator=false
-# Add color changing based on temp
-[cpu_temp]
-command=$SCRIPT_DIR/cpu_temp/cpu_temp
+[cpu]
+command=$SCRIPT_DIR/cpu/cpu
 interval=15
 markup=pango
 

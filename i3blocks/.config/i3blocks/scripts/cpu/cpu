@@ -1,0 +1,48 @@
+#!/bin/bash
+
+source ~/.my_colors.sh
+
+# CPU Usage
+cpu_usage=$(top -bn1 | grep "Cpu(s)" | awk '{printf "%.2f", 100 - $8}')
+
+formatted_usage=$(echo "$cpu_usage" | awk '{
+    # $1 is the number from the echo command
+    if ($1 > 10) {
+        printf "%.0f", $1 
+    } else {
+        printf "%.2f", $1 
+    }
+}')
+
+whole_usage=$(echo "$cpu_usage" | awk '{
+    printf "%.0f", $1
+}')
+
+if [ "$whole_usage" -le 50 ]; then
+        usage_color=$MY_GREEN
+elif [[ "$whole_usage" -gt 50 && "$whole_usage" -le 70 ]]; then
+        usage_color=$MY_YELLOW
+elif [[ "$whole_usage" -gt 70 && "$whole_usage" -le 85 ]]; then
+        usage_color=$MY_ORANGE
+else
+        usage_color=$MY_RED
+fi
+
+# CPU Temperature
+temperature=$(sensors | grep 'CPU' | awk -F '[+°]' '{print $2}')
+
+formatted_temperature=$(echo "$temperature" | awk '{
+    printf "%.0f", $1 
+}')
+
+if [ "$formatted_temperature" -le 50 ]; then
+        temp_color=$MY_GREEN
+elif [[ "$formatted_temperature" -gt 50 && "$formatted_temperature" -le 60 ]]; then
+        temp_color=$MY_YELLOW
+elif [[ "$formatted_temperature" -gt 60 && "$formatted_temperature" -le 70 ]]; then
+        temp_color=$MY_ORANGE
+else
+        temp_color=$MY_RED
+fi
+
+echo "<span color=\"$usage_color\" size='large'>󰓅</span><span color=\"$usage_color\"> $formatted_usage%</span><span size='large'> 󰟀 </span><span color=\"$temp_color\">$formatted_temperature°C </span><span color=\"$temp_color\" size='large'></span>"
