@@ -38,6 +38,11 @@ min_width=850
 align=center
 separator=false
 
+[flatpak_updates]
+command=$SCRIPT_DIR/flatpak-updates/flatpak-updates
+interval=600
+markup=pango
+
 [updates]
 command=$SCRIPT_DIR/dnf-updates/dnf-updates
 #label=Updates
@@ -69,7 +74,7 @@ markup=pango
 [memory]
 command=$SCRIPT_DIR/memory/memory
 # separator=false
-interval=30
+interval=15
 markup=pango
 
 # Network interface monitoring
@@ -100,18 +105,18 @@ interval=5
 
 [fan_speed]
 command=$SCRIPT_DIR/fan_speed/fan_speed
-interval=30
+interval=15
 markup=pango
 
 [cpu_usage]
 command=$SCRIPT_DIR/cpu_usage/cpu_usage
-interval=30
+interval=15
 markup=pango
 separator=false
 # Add color changing based on temp
 [temperature]
 command=$SCRIPT_DIR/temperature/temperature
-interval=30
+interval=15
 markup=pango
 
 [load_average]
