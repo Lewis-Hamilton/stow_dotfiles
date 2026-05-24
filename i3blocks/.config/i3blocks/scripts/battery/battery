@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+
+source ~/.my_colors.sh
+
+# Default to BAT0 if not specified by i3blocks ENV
+BAT_NUM=${BAT_NUMBER:-0}
+SYS_DIR="/sys/class/power_supply/BAT${BAT_NUM}"
+
+# Fallback to ACAD or AC if battery path is missing
+AC_DIR="/sys/class/power_supply/ACAD"
+[[ ! -d "$AC_DIR" ]] && AC_DIR="/sys/class/power_supply/AC"
+
+# Exit quietly if no battery exists
+[[ ! -d "$SYS_DIR" ]] && exit 0
+
+# Read kernel stats directly (blazing fast, no parsing needed)
+percent=$(cat "$SYS_DIR/capacity")
+status=$(cat "$SYS_DIR/status")
+
+# 1. Determine the Icon based on Status & Percentage
+if [[ "$status" == "Charging" || "$status" == "Full" ]]; then
+    icon="󰂄"
+elif [[ "$status" == "Unknown" ]]; then
+    # Check if AC adapter is plugged in
+    if [[ -f "$AC_DIR/online" && $(cat "$AC_DIR/online") -eq 1 ]]; then
+        icon="CHR"
+    else
+        icon="DIS"
+    fi
+else
+    # Discharging: Math trick to map 0-100% to the 10 Nerd Font stages (U+F107A to U+F1069)
+    # This replaces the massive if/elif chain from the Perl script
+    stages=("󰁺" "󰁻" "󰁼" "󰁽" "󰁾" "󰁿" "󰂀" "󰂁" "󰂂" "󰁹")
+    idx=$(( percent / 10 ))
+    [[ $idx -gt 9 ]] && idx=9  # Cap index at 9 for 100%
+    icon="${stages[$idx]}"
+fi
+
+# 2. Output to i3blocks (Full text then Short text)
+output="${LABEL}${percent}% ${icon}"
+echo "$output"
+echo "$output"
+
+# 3. Handle Colors and Urgent Exit Codes (Only if Discharging/Unknown)
+if [[ "$status" != "Charging" && "$status" != "Full" ]]; then
+    if [[ $percent -lt 15 ]]; then
+        echo "${MY_RED}"
+        [[ $percent -lt 5 ]] && exit 33 # i3blocks urgent flag
+    elif [[ $percent -lt 30 ]]; then
+        echo "${MY_ORANGE}"
+    elif [[ $percent -lt 50 ]]; then
+        echo "${MY_YELLOW}"
+    else
+        echo "${MY_GREEN}"
+    fi
+else
+    # Charging or Full
+    echo "${MY_GREEN}"
+fi
+
+exit 0

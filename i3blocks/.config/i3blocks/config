@@ -121,7 +121,7 @@ interval=10
 #
 # The battery instance defaults to 0.
 [battery]
-command=$SCRIPT_DIR/battery/launch_battery.sh
+command=$SCRIPT_DIR/battery/battery
 interval=30
 
 # Generic media player support
