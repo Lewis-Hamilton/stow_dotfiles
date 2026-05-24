@@ -29,7 +29,7 @@ else
 fi
 
 # CPU Temperature
-temperature=$(sensors | grep 'CPU' | awk -F '[+°]' '{print $2}')
+temperature=$(sensors | grep -E -i 'package id 0|cpu' | awk -F '[+°]' '{print $2}')
 
 formatted_temperature=$(echo "$temperature" | awk '{
     printf "%.0f", $1 
