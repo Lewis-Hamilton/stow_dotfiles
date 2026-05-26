@@ -21,6 +21,4 @@ fi
 # Force the output to include expected digits
 printf -v padded_output "%4s" "$volume"
 
-output="$padded_output<span size='large'>$icon</span>"
-
 echo "$padded_output<span size='large'>$icon</span>"

@@ -15,6 +15,7 @@ else
 	color=$MY_RED
 fi
 
-output="<span color=\"$color\">$updates </span><span color=\"$color\" size='large'>󰚰</span>"
+printf -v padded_output "%3s" "$updates"
 
-echo "$output"
+
+echo "<span color=\"$color\">$padded_output </span><span color=\"$color\" size='large'>󰚰</span>"
