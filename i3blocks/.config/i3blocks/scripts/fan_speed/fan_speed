@@ -2,31 +2,23 @@
 
 source ~/.my_colors.sh
 
-# Max speed was determined by maxing the cpu and seeing how fast it spun.
-max_speed=3400
-fan_speed=$(sensors | grep -i fan | head -n 1 | awk '{print $2}')
+# 1. Capture raw sensors data once
+sensors_raw=$(sensors)
 
-if [ "$fan_speed" -eq "0" ]; then
-    fan_usage="OFF"
-    color=$MY_GREEN
-# If the fan speed is greater than my expected max
-# Output the rpm so I can adjust the script
-elif [ "$fan_speed" -gt "3400" ]; then
-    fan_usage=$fan_speed
-else
-    fan_usage=$(echo "scale=2; ($fan_speed / $max_speed) * 100"  | bc | awk '{printf "%.0f", $1}')
+fan_speed=$(echo "$sensors_raw" | grep "fan2:" | awk -F: '{print $2}' | awk '{print $1}')
 
-    if [ "$fan_usage" -le 55 ]; then
-        color=$MY_GREEN
-    elif [[ "$fan_usage" -gt 55 && "$fan_usage" -le 70 ]]; then
-        color=$MY_YELLOW
-    elif [[ "$fan_usage" -gt 70 && "$fan_usage" -le 85 ]]; then
-        color=$MY_ORANGE
-    else
-        color=$MY_RED
-    fi
-
-    fan_usage=$fan_usage"%"
+if [[ -z "$fan_speed" ]]; then
+    fan_speed="error"
 fi
 
-echo "<span color=\"$color\">$fan_usage </span><span color=\"$color\" size='large'>󰈐</span>"
+if [ "$fan_speed" -le 800 ]; then
+    color=$MY_GREEN
+elif [[ "$fan_speed" -gt 800 && "$fan_speed" -le 1600 ]]; then
+    color=$MY_YELLOW
+elif [[ "$fan_speed" -gt 1600 && "$fan_speed" -le 2400 ]]; then
+    color=$MY_ORANGE
+else
+    color=$MY_RED
+fi
+
+echo "<span color=\"$color\">$fan_speed </span><span color=\"$color\" size='large'>󰈐</span>"

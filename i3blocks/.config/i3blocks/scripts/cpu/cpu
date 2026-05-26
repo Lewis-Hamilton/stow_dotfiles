@@ -29,11 +29,25 @@ else
 fi
 
 # CPU Temperature
-temperature=$(sensors | grep 'CPU' | awk -F '[+°]' '{print $2}')
 
-formatted_temperature=$(echo "$temperature" | awk '{
-    printf "%.0f", $1 
-}')
+# 1. Capture raw sensors data once
+sensors_raw=$(sensors)
+
+# 2. Extract the single best temperature line based on machine
+if echo "$sensors_raw" | grep -q "PECI Agent 0"; then
+    target_line=$(echo "$sensors_raw" | grep "PECI Agent 0" | head -n 1)
+else
+    target_line=$(echo "$sensors_raw" | grep 'CPU:' | head -n 1)
+fi
+
+# 3. Apply your exact extraction and rounding logic
+temperature=$(echo "$target_line" | awk -F '[+°]' '{print $2}')
+formatted_temperature=$(echo "$temperature" | awk '{printf "%.0f", $1}')
+
+# Fallback check if both grep attempts somehow failed
+if [[ -z "$formatted_temperature" ]]; then
+    formatted_temperature="error"
+fi
 
 if [ "$formatted_temperature" -le 50 ]; then
         temp_color=$MY_GREEN
