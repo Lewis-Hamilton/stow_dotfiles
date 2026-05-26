@@ -3,6 +3,7 @@
 source ~/.my_colors.sh
 
 RAM_PERCENT=$(awk '/MemTotal/ {T=$2} /MemAvailable/ {A=$2} END {printf "%.0f", (T-A)/T*100}' /proc/meminfo)
+OUTPUT_VALUE=${RAM_PERCENT}%
 
 if [ "$RAM_PERCENT" -le 50 ]; then
 	color=$MY_GREEN
@@ -10,10 +11,16 @@ elif [[ "$RAM_PERCENT" -gt 50 && "$RAM_PERCENT" -le 70 ]]; then
 	color=$MY_YELLOW
 elif [[ "$RAM_PERCENT" -gt 70 && "$RAM_PERCENT" -le 85 ]]; then
 	color=$MY_ORANGE
+elif [[ "$RAM_PERCENT" -gt 85 && "$RAM_PERCENT" -le 99 ]]; then
+	color=$MY_RED
+elif [ "$RAM_PERCENT" -eq 100 ]; then
+	OUTPUT_VALUE=""
+	color=$MY_RED
 else
+	OUTPUT_VALUE="ERR"
 	color=$MY_RED
 fi
 
-printf -v padded_output "%3s" "$RAM_PERCENT"
+printf -v padded_output "%3s" "$OUTPUT_VALUE"
 
-echo "<span color=\"$color\">${padded_output}% </span><span color=\"$color\" size='large'>󰧑</span>"
+echo "<span color=\"$color\">${padded_output} </span><span color=\"$color\" size='large'>󰧑</span>"
