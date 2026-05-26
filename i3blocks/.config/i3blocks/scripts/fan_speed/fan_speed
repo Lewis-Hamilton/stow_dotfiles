@@ -2,31 +2,34 @@
 
 source ~/.my_colors.sh
 
-# Max speed was determined by maxing the cpu and seeing how fast it spun.
-max_speed=3400
-fan_speed=$(sensors | grep -i fan | head -n 1 | awk '{print $2}')
+# 1. Capture raw sensors data once
+sensors_raw=$(sensors)
 
-if [ "$fan_speed" -eq "0" ]; then
-    fan_usage="OFF"
-    color=$MY_GREEN
-# If the fan speed is greater than my expected max
-# Output the rpm so I can adjust the script
-elif [ "$fan_speed" -gt "3400" ]; then
-    fan_usage=$fan_speed
+# 2. Extract the correct fan line depending on the machine
+if echo "$sensors_raw" | grep -q "fan2:"; then
+    # Desktop: Target the true CPU fan header directly
+    fan_line=$(echo "$sensors_raw" | grep "fan2:")
 else
-    fan_usage=$(echo "scale=2; ($fan_speed / $max_speed) * 100"  | bc | awk '{printf "%.0f", $1}')
-
-    if [ "$fan_usage" -le 55 ]; then
-        color=$MY_GREEN
-    elif [[ "$fan_usage" -gt 55 && "$fan_usage" -le 70 ]]; then
-        color=$MY_YELLOW
-    elif [[ "$fan_usage" -gt 70 && "$fan_usage" -le 85 ]]; then
-        color=$MY_ORANGE
-    else
-        color=$MY_RED
-    fi
-
-    fan_usage=$fan_usage"%"
+    # Laptop: Grab the first spinning fan line available
+    fan_line=$(echo "$sensors_raw" | grep -i "fan" | grep -v "0 RPM" | head -n 1)
 fi
 
-echo "<span color=\"$color\">$fan_usage </span><span color=\"$color\" size='large'>󰈐</span>"
+# 3. Safely parse out just the numerical RPM value
+if [[ -n "$fan_line" ]]; then
+    clean_line=$(echo "$fan_line" | awk -F: '{print $2}')
+    fan_speed=$(echo "$clean_line" | grep -oE '[0-9]+' | head -n 1)
+else
+    fan_speed=0
+fi
+
+if [ "$fan_speed" -le 800 ]; then
+    color=$MY_GREEN
+elif [[ "$fan_speed" -gt 800 && "$fan_speed" -le 1600 ]]; then
+    color=$MY_YELLOW
+elif [[ "$fan_speed" -gt 1600 && "$fan_speed" -le 2400 ]]; then
+    color=$MY_ORANGE
+else
+    color=$MY_RED
+fi
+
+echo "<span color=\"$color\">$fan_speed </span><span color=\"$color\" size='large'>󰈐</span>"
