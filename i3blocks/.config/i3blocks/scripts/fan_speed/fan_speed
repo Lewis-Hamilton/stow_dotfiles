@@ -8,7 +8,7 @@ sensors_raw=$(sensors)
 fan_speed=$(echo "$sensors_raw" | grep "fan2:" | awk -F: '{print $2}' | awk '{print $1}')
 
 if [[ -z "$fan_speed" ]]; then
-    fan_speed="error"
+    fan_speed="ERR"
 fi
 
 if [ "$fan_speed" -le 800 ]; then
@@ -22,6 +22,6 @@ else
 fi
 
 # Force the output to include expected digits
-printf -v padded_output "%4s" "$fan_speed"
+printf -v padded_output "%04d" "$fan_speed"
 
 echo "<span color=\"$color\">$padded_output </span><span color=\"$color\" size='large'>󰈐</span>"
