@@ -29,20 +29,39 @@ else
 fi
 
 # CPU Temperature
-temperature=$(sensors | grep -E -i 'package id 0|cpu' | awk -F '[+°]' '{print $2}')
 
-formatted_temperature=$(echo "$temperature" | awk '{
-    printf "%.0f", $1 
-}')
+# 1. Capture raw sensors data once
+sensors_raw=$(sensors)
 
-if [ "$formatted_temperature" -le 50 ]; then
+# 2. Extract the single best temperature line based on machine
+if echo "$sensors_raw" | grep -q "PECI Agent 0"; then
+    target_line=$(echo "$sensors_raw" | grep "PECI Agent 0" | head -n 1)
+else
+    target_line=$(echo "$sensors_raw" | grep -E -i 'cpu' | grep -v "0.0°C" | head -n 1)
+fi
+
+# 3. Apply your exact extraction and rounding logic
+temperature=$(echo "$target_line" | awk -F '[+°]' '{print $2}')
+formatted_temperature=$(echo "$temperature" | awk '{printf "%.0f", $1}')
+
+# Fallback check if both grep attempts somehow failed
+if [[ -z "$formatted_temperature" ]]; then
+    formatted_temperature="??"
+fi
+
+# 4. Your exact color threshold logic (Uses a dummy 0 fallback for bash math comparison)
+comp_temp=$formatted_temperature
+[[ "$comp_temp" == "??" ]] && comp_temp=0
+
+if [ "$comp_temp" -le 50 ]; then
         temp_color=$MY_GREEN
-elif [[ "$formatted_temperature" -gt 50 && "$formatted_temperature" -le 60 ]]; then
+elif [[ "$comp_temp" -gt 50 && "$comp_temp" -le 60 ]]; then
         temp_color=$MY_YELLOW
-elif [[ "$formatted_temperature" -gt 60 && "$formatted_temperature" -le 70 ]]; then
+elif [[ "$comp_temp" -gt 60 && "$comp_temp" -le 70 ]]; then
         temp_color=$MY_ORANGE
 else
         temp_color=$MY_RED
 fi
 
+# 5. Output the EXACT Pango markup string to i3blocks (Fixed $temp_color variable)
 echo "<span color=\"$usage_color\" size='large'>󰓅</span><span color=\"$usage_color\"> $formatted_usage%</span><span size='large'> 󰟀 </span><span color=\"$temp_color\">$formatted_temperature°C </span><span color=\"$temp_color\" size='large'></span>"
