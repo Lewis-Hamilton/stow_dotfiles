@@ -11,11 +11,17 @@ elif [[ "$updates" -gt 0 && "$updates" -le 5 ]]; then
 	color=$MY_YELLOW
 elif [[ "$updates" -gt 5 && "$updates" -le 10 ]]; then
 	color=$MY_ORANGE
+elif [[ "$updates" -gt 10 && "$updates" -le 99 ]]; then
+	color=$MY_RED
+elif [ "$updates" -gt 99 ]; then
+	updates=""
+	color=$MY_RED
 else
+	updates="ER"
 	color=$MY_RED
 fi
 
-printf -v padded_output "%3s" "$updates"
+printf -v padded_output "%2s" "$updates"
 
 
 echo "<span color=\"$color\">$padded_output </span><span color=\"$color\" size='large'>󰚰</span>"
