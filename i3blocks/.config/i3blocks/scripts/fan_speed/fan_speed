@@ -5,19 +5,10 @@ source ~/.my_colors.sh
 # 1. Capture raw sensors data once
 sensors_raw=$(sensors)
 
-# 2. Extract and parse the fan speed based on the machine type
-if echo "$sensors_raw" | grep -q "fan2:"; then
-    # DESKTOP: Split by the colon ':', then grab the first number (the true RPM)
-    fan_speed=$(echo "$sensors_raw" | grep "fan2:" | awk -F: '{print $2}' | awk '{print $1}')
-else
-    # LAPTOP: Find the first active fan line, grab the field right before "RPM"
-    fan_line=$(echo "$sensors_raw" | grep -i "fan" | grep -v "0 RPM" | head -n 1)
-    fan_speed=$(echo "$fan_line" | awk '{for(i=1;i<=NF;i++) if($i=="RPM") print $(i-1)}')
-fi
+fan_speed=$(echo "$sensors_raw" | grep "fan2:" | awk -F: '{print $2}' | awk '{print $1}')
 
-# 3. Handle empty fallback safety
 if [[ -z "$fan_speed" ]]; then
-    fan_speed=0
+    fan_speed="error"
 fi
 
 if [ "$fan_speed" -le 800 ]; then
@@ -31,3 +22,4 @@ else
 fi
 
 echo "<span color=\"$color\">$fan_speed </span><span color=\"$color\" size='large'>󰈐</span>"
+echo $sensors_raw
