@@ -3,8 +3,8 @@
 STATUS=$(wpctl get-volume @DEFAULT_AUDIO_SINK@)
 
 if echo "$STATUS" | grep -q '\[MUTED\]'; then
-    volume=""
-    icon="󰖁"
+    volume="MUTE"
+    icon=" 󰖁"
 else
     VOLUME_PERCENT=$(echo "$STATUS" | awk '/Volume/ {printf "%.0f", $2 * 100}')
     volume="${VOLUME_PERCENT}%"
@@ -18,6 +18,9 @@ else
     fi 
 fi
 
-output="$volume<span size='large'>$icon</span>"
+# Force the output to include expected digits
+printf -v padded_output "%4s" "$volume"
 
-echo "$output"
+output="$padded_output<span size='large'>$icon</span>"
+
+echo "$padded_output<span size='large'>$icon</span>"
