@@ -14,4 +14,6 @@ else
 	color=$MY_RED
 fi
 
-echo "<span color=\"$color\">${RAM_PERCENT}% </span><span color=\"$color\" size='large'>󰧑</span>"
+printf -v padded_output "%3s" "$RAM_PERCENT"
+
+echo "<span color=\"$color\">${padded_output}% </span><span color=\"$color\" size='large'>󰧑</span>"
