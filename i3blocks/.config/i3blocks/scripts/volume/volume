@@ -18,7 +18,13 @@ else
     fi 
 fi
 
-# Force the output to include expected digits
-printf -v padded_output "%4s" "$volume"
+if [ ${#volume} -eq 2 ]; then
+    padded_output="__$volume"   # Add one underscore for double digits
+elif [ ${#volume} -eq 3 ]; then
+    padded_output="_$volume"   # Add one underscore for double digits
+else
+    padded_output="$volume"    # Leave 3-digit speeds alone
+fi
+
 
 echo "$padded_output<span size='large'>$icon</span>"
