@@ -1,5 +1,22 @@
 #!/bin/bash
 
-PERCENT=$(brightnessctl info | grep -oP '\(\K[0-9]+(?=%\))')
+RAW_BRIGHTNESS=$(brightnessctl info)
 
-echo "$PERCENT% <span size='large'>󰖨</span>" 
+MAX_BRIGHTNESS=$(echo "$RAW_BRIGHTNESS" | grep -oP 'Max brightness: \K[0-9]+')
+
+if [ "$MAX_BRIGHTNESS" -eq 1 ]; then
+    exit
+else
+
+    BRIGHTNESS_PERCENT=$(echo "$RAW_BRIGHTNESS" | grep -oP '\(\K[0-9]+(?=%\))')
+
+    if [ ${#BRIGHTNESS_PERCENT} -eq 1 ]; then
+        PADDED_OUTPUT="__$BRIGHTNESS_PERCENT"
+    elif [ ${#BRIGHTNESS_PERCENT} -eq 2 ]; then
+        PADDED_OUTPUT="_$BRIGHTNESS_PERCENT"
+    else
+        PADDED_OUTPUT="$BRIGHTNESS_PERCENT"
+    fi
+
+    echo "$PADDED_OUTPUT% <span size='large'>󰖨</span>" 
+fi
