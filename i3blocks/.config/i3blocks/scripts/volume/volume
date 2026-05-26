@@ -3,8 +3,8 @@
 STATUS=$(wpctl get-volume @DEFAULT_AUDIO_SINK@)
 
 if echo "$STATUS" | grep -q '\[MUTED\]'; then
-    volume=""
-    icon="󰖁"
+    volume="MUTE"
+    icon=" 󰖁"
 else
     VOLUME_PERCENT=$(echo "$STATUS" | awk '/Volume/ {printf "%.0f", $2 * 100}')
     volume="${VOLUME_PERCENT}%"
@@ -18,6 +18,13 @@ else
     fi 
 fi
 
-output="$volume<span size='large'>$icon</span>"
+if [ ${#volume} -eq 2 ]; then
+    padded_output="__$volume"   # Add one underscore for double digits
+elif [ ${#volume} -eq 3 ]; then
+    padded_output="_$volume"   # Add one underscore for double digits
+else
+    padded_output="$volume"    # Leave 3-digit speeds alone
+fi
 
-echo "$output"
+
+echo "$padded_output<span size='large'>$icon</span>"

@@ -36,8 +36,14 @@ else
     icon="${stages[$idx]}"
 fi
 
-# 2. Output to i3blocks (Full text then Short text)
-output="${LABEL}${percent}% ${icon}"
+printf -v padded_percent "%2s" "$percent"
+
+if [ "$percent" -eq 100 ]; then
+    output="${LABEL}󱐋󱐋 ${icon}"
+else
+    output="${LABEL}${padded_percent}% ${icon}"
+fi
+
 echo "$output"
 echo "$output"
 
