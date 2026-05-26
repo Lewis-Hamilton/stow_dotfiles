@@ -5,20 +5,18 @@ source ~/.my_colors.sh
 # 1. Capture raw sensors data once
 sensors_raw=$(sensors)
 
-# 2. Extract the correct fan line depending on the machine
+# 2. Extract and parse the fan speed based on the machine type
 if echo "$sensors_raw" | grep -q "fan2:"; then
-    # Desktop: Target the true CPU fan header directly
-    fan_line=$(echo "$sensors_raw" | grep "fan2:")
+    # DESKTOP: Split by the colon ':', then grab the first number (the true RPM)
+    fan_speed=$(echo "$sensors_raw" | grep "fan2:" | awk -F: '{print $2}' | awk '{print $1}')
 else
-    # Laptop: Grab the first spinning fan line available
+    # LAPTOP: Find the first active fan line, grab the field right before "RPM"
     fan_line=$(echo "$sensors_raw" | grep -i "fan" | grep -v "0 RPM" | head -n 1)
+    fan_speed=$(echo "$fan_line" | awk '{for(i=1;i<=NF;i++) if($i=="RPM") print $(i-1)}')
 fi
 
-# 3. Safely parse out just the numerical RPM value
-if [[ -n "$fan_line" ]]; then
-    clean_line=$(echo "$fan_line" | awk -F: '{print $2}')
-    fan_speed=$(echo "$clean_line" | grep -oE '[0-9]+' | head -n 1)
-else
+# 3. Handle empty fallback safety
+if [[ -z "$fan_speed" ]]; then
     fan_speed=0
 fi
 
