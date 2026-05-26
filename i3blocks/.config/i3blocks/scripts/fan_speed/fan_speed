@@ -21,4 +21,7 @@ else
     color=$MY_RED
 fi
 
-echo "<span color=\"$color\">$fan_speed </span><span color=\"$color\" size='large'>󰈐</span>"
+# Force the output to include expected digits
+printf -v padded_output "%4s" "$fan_speed"
+
+echo "<span color=\"$color\">$padded_output </span><span color=\"$color\" size='large'>󰈐</span>"
