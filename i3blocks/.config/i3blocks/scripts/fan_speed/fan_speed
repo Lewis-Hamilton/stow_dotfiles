@@ -22,4 +22,3 @@ else
 fi
 
 echo "<span color=\"$color\">$fan_speed </span><span color=\"$color\" size='large'>󰈐</span>"
-echo $sensors_raw
