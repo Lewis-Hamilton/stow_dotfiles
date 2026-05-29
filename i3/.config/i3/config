@@ -3,30 +3,8 @@
 #
 # Please see https://i3wm.org/docs/userguide.html for a complete reference!
 
-# Set Caps Lock as the Super key for holding
-#exec_always --no-startup-id setxkbmap -option caps:super -option grp:shifts_toggle
-
-# exec_always --no-startup-id setxkbmap -option caps:swapsuper
-
-# This one
-# exec_always --no-startup-id setxkbmap -option caps:super
-# exec_always --no-startup-id setxkbmap -option super:caps
-
-# exec_always --no-startup-id xmodmap ~/.Xmodmap
 exec_always --no-startup-id picom -b
 exec_always --no-startup-id xmodmap ~/.Xmodmap
-#exec_always --no-startup-id killall xcape
-#exec_always --no-startup-id xcape -e 'Super_L=Caps_Lock'
-
-# Execute xmodmap file to change Caps Lock to Super_L
-#exec_always --no-startup-id xmodmap ~/.Xmodmap
-
-# Ensure xcape is killed before starting
-#exec_always --no-startup-id killall xcape
-
-# Run xcape with a short delay to properly configure Caps Lock on tap
-#exec_always --no-startup-id bash -c "sleep 1 && xcape -e 'Super_L=Caps_Lock'"
-
 
 set $mod Mod4
 
