@@ -291,4 +291,12 @@ bar {
     binding_mode       #2f343a #900000 #ffffff
   }
   status_command SCRIPT_DIR=~/.config/i3blocks/scripts i3blocks
+  
+  # Disabling Scolling and clicking through workspaces
+  # Want to force myself to use keybinds
+  bindsym button4 nop
+  bindsym button5 nop
+  bindsym button1 nop
+  bindsym button2 nop
+  bindsym button3 nop
 }
