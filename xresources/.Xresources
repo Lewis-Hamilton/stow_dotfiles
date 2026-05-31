@@ -1,0 +1,62 @@
+!HiDPI scaling
+! i3/X11 does no automatic scaling, so the native 3456x2160 eDP-1 panel on the
+! Ubuntu laptop renders everything tiny. Set the DPI explicitly.
+! 144 = 1.5x. Bump to 168 (1.75x) or 192 (2x) if things are still too small.
+Xft.dpi: 144
+Xcursor.size: 32
+
+!Font
+URxvt*font: xft:JetBrains Mono SemiBold:size=14
+
+!Colors
+URxvt*background: #000000
+URxvt*foreground: #f4f4f4
+
+*color0: #171421
+*color1: #C01C28
+*color2: #26A269
+*color3: #A2734C
+*color4: #12488B
+*color5: #A347BA
+*color6: #2AA1B3
+*color7: #D0CFCC
+*color8: #5E5C64
+*color9: #F66151
+*color10: #33DA7A
+*color11: #E9AD0C
+*color12: #2A7BDE
+*color13: #C061CB
+*color14: #33C7DE
+*color15: #FFFFFF
+
+!Remove Scrollbar
+URxvt*scrollBar: false
+
+!Extensions
+URxvt.perl-ext-common: default,selection-to-clipboard,tabbedalt
+
+!Fix Copy Paste
+!Copy doesnt work but paste does
+URxvt.keysym.Shift-Control-C: eval:selection_to_clipboard
+URxvt.keysym.C-C: perl:clipboard:copy
+URxvt.keysym.Shift-Control-V: eval:paste_clipboard
+
+!icon lets see
+*iconFile: /usr/share/icons/hicolor/scalable/apps/org.gnome.Terminal.svg
+
+
+!blinking cursor
+URxvt*cursorBlink: true
+URxvt*cursorUnderline: true
+URxvt*cursorColor: #f4f4f4
+!want to change this to a vertical bar, but maybe this is better?
+
+URxvt.tabbedalt.disable-default-keys: true
+
+URxvt.keysym.Control-n: tabbedalt:new_tab
+URxvt.keysym.Control-Tab: tabbedalt:next_tab
+URxvt.keysym.Control-Shift-Tab: tabbedalt:prev_tab
+
+!Add window border
+URxvt.internalBorder: 1
+URxvt.borderColor: #FFFFFF

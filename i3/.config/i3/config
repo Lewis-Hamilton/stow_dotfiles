@@ -16,7 +16,10 @@ exec --no-startup-id syncthing --no-browser
 
 #
 # Applications that run every time
-# 
+#
+# Load X resources (Xft.dpi) for HiDPI scaling on the 4K panel; run first so GUI apps inherit it
+exec_always --no-startup-id xrdb -merge ~/.Xresources
+#
 # xmodmap swaps caps lock and windows key
 exec_always --no-startup-id xmodmap ~/.Xmodmap
 #
