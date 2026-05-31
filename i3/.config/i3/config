@@ -4,16 +4,20 @@
 # Please see https://i3wm.org/docs/userguide.html for a complete reference!
 
 # Startup Applications
+#
 # Startup desktop files, required for system utilities and stuff
 exec --no-startup-id dex-autostart --autostart --environment i3
 #
 exec --no-startup-id syncthing --no-browser
 
+# Applications that run every time
+# 
+# xmodmap swaps caps lock and windows key
+exec_always --no-startup-id xmodmap ~/.Xmodmap
+exec_always --no-startup-id picom -b
+
 # Temporary line to show where I'm at.
 
-
-exec_always --no-startup-id picom -b
-exec_always --no-startup-id xmodmap ~/.Xmodmap
 
 set $mod Mod4
 
