@@ -1,0 +1,15 @@
+# Flathub application IDs to install, one per line (# lines ignored).
+# Installed by bootstrap.sh from the `flathub` remote.
+#
+# This list is NOT auto-derived — fill it in from your CURRENT machine BEFORE
+# you wipe it, so you don't lose track of what you had:
+#
+#     flatpak list --app --columns=application >> flatpaks.txt
+#
+# Example entries (delete/replace with your own):
+# com.spotify.Client
+# md.obsidian.Obsidian
+# org.signal.Signal
+#
+# NOTE: install 1Password from its official RPM repo instead of Flathub so the
+# system-authentication + browser integration works (see FEDORA_MIGRATION.md).

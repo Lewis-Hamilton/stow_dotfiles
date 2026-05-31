@@ -1,0 +1,54 @@
+# Fedora dnf packages for this i3 setup.
+# Derived from what the i3 config, i3blocks scripts, and binds actually invoke.
+# Installed by bootstrap.sh (one per line; lines starting with # are ignored).
+# If a name doesn't match on your Fedora version, verify with: dnf provides '*/<binary>'
+
+# --- Window manager + bar ---
+i3
+i3blocks
+i3lock
+dunst
+
+# --- Launchers / desktop utilities ---
+rofi
+feh
+flameshot
+brightnessctl
+autorandr
+arandr
+xss-lock
+picom
+dex            # provides dex-autostart (XDG autostart in i3)
+
+# --- Terminal ---
+rxvt-unicode   # urxvt
+
+# --- Audio (PipeWire; usually preinstalled, listed for completeness) ---
+pipewire
+wireplumber            # provides wpctl
+pipewire-pulseaudio
+pulseaudio-utils       # provides pactl
+
+# --- Sensors (fan_speed / cpu i3blocks) ---
+lm_sensors
+
+# --- X11 utilities used by the i3 config ---
+# xrdb / xmodmap / xsetroot / xrandr. NOTE: if these are missing after install,
+# the package was renamed on your Fedora version — check: dnf provides '*/xmodmap'
+xorg-x11-server-utils
+xorg-x11-xinit
+
+# --- Sync ---
+syncthing
+
+# --- 1Password system-auth on i3 needs a polkit agent + a keyring ---
+polkit-gnome           # provides /usr/libexec/polkit-gnome-authentication-agent-1
+gnome-keyring
+
+# --- Fonts + tooling used by bootstrap.sh ---
+fontconfig
+curl
+unzip
+
+# --- Dotfile management ---
+stow
