@@ -3,6 +3,14 @@
 #
 # Please see https://i3wm.org/docs/userguide.html for a complete reference!
 
+# Startup Applications
+# Startup desktop files, required for system utilities and stuff
+exec --no-startup-id dex-autostart --autostart --environment i3
+
+
+# Temporary line to show where I'm at.
+
+
 exec_always --no-startup-id picom -b
 exec_always --no-startup-id xmodmap ~/.Xmodmap
 
@@ -13,9 +21,7 @@ set $mod Mod4
 font pango:JetBrainsMono NFM SemiBold 10
 
 
-# Start XDG autostart .desktop files using dex. See also
-# https://wiki.archlinux.org/index.php/XDG_Autostart
-exec --no-startup-id dex-autostart --autostart --environment i3
+
 
 # The combination of xss-lock, nm-applet and pactl is a popular choice, so
 # they are included here as an example. Modify as you see fit.
