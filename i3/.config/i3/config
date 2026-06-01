@@ -18,6 +18,7 @@ exec_always --no-startup-id feh --bg-fill /usr/share/backgrounds/speed.png # Set
 # Caps lock is super key
 set $mod Mod4
 bindsym Print exec --no-startup-id flameshot gui                   # launch flameshot (screenshot)
+bindsym $mod+Return exec urxvt                                     # start a terminal
 
 
 # Temporary line to show where I'm at.
@@ -53,9 +54,6 @@ bindsym XF86AudioMicMute exec --no-startup-id pactl set-source-mute @DEFAULT_SOU
 
 # Use Mouse+$mod to drag floating windows to their wanted position
 floating_modifier $mod
-
-# start a terminal
-bindsym $mod+Return exec i3-sensible-terminal
 
 # kill focused window
 bindsym $mod+q kill
