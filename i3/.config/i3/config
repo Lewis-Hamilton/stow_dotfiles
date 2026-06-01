@@ -16,7 +16,7 @@ exec_always --no-startup-id feh --bg-fill /usr/share/backgrounds/speed.png # Set
 
 # ── Keybinds ──────────────────────────────────────────────────────────────────────────────────────
 set $mod Mod4                                                      # Caps lock is super key
-
+bindsym Print exec --no-startup-id flameshot gui                   # launch flameshot (screenshot)
 
 
 # Temporary line to show where I'm at.
@@ -41,9 +41,6 @@ font pango:JetBrainsMono NFM SemiBold 10
 #bindsym $mod+l exec loginctl lock-session
 bindsym $mod+l exec --no-startup-id i3lock -i Downloads/lockscreen.png
 bindsym $mod+s exec --no-startup-id systemctl suspend
-
-# launch flameshot
-bindsym Print exec --no-startup-id flameshot gui
 
 # Use wpctl to adjust volume in Pipewire.
 set $refresh_i3status killall -SIGUSR1 i3status
