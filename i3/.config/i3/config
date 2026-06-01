@@ -21,14 +21,11 @@ bindsym Print exec --no-startup-id flameshot gui                   # launch flam
 bindsym $mod+Return exec urxvt                                     # launch terminal
 bindsym $mod+d exec "rofi -show drun"                              # launch rofi (app launch menu)
 
+# ── Font ──────────────────────────────────────────────────────────────────────────────────────────
+font pango:JetBrainsMono NFM SemiBold 10                           # Font for window titles + i3 bar
+
+
 # Temporary line to show where I'm at.
-
-
-
-
-# Font for window titles and i3 bar
-font pango:JetBrainsMono NFM SemiBold 10
-
 
 
 
