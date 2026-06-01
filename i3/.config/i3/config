@@ -18,8 +18,8 @@ exec_always --no-startup-id feh --bg-fill /usr/share/backgrounds/speed.png # Set
 # Caps lock is super key
 set $mod Mod4
 bindsym Print exec --no-startup-id flameshot gui                   # launch flameshot (screenshot)
-bindsym $mod+Return exec urxvt                                     # start a terminal
-
+bindsym $mod+Return exec urxvt                                     # launch terminal
+bindsym $mod+d exec "rofi -show drun"                              # launch rofi (app launch menu)
 
 # Temporary line to show where I'm at.
 
@@ -61,15 +61,7 @@ bindsym $mod+q kill
 # move the whole workspace to the next output
 bindsym $mod+x move workspace to output right
 
-# start dmenu (a program launcher)
-# bindsym $mod+d exec --no-startup-id "dmenu_run -nf '#BBBBBB' -nb '#222222' -sb '#005577' -sf '#EEEEEE' -fn 'monospace-10'"
-# A more modern dmenu replacement is rofi:
-# bindcode $mod+40 exec "rofi -modi drun,run -show drun"
-# bindcode 133 --release exec "rofi -show drun"
 
-# Set caps lock to open rofi menu on press
-#bindcode 66 --release exec "rofi -show drun"
-bindsym $mod+d exec "rofi -show drun"
 bindcode 232 exec --no-startup-id brightnessctl set 10%- && pkill -SIGRTMIN+9 i3blocks
 bindcode 233 exec --no-startup-id brightnessctl set +10% && pkill -SIGRTMIN+9 i3blocks
 # bindsym $mod --release exec "rofi -show drun"
