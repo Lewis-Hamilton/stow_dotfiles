@@ -6,23 +6,39 @@
 
 
 # ── Startup Applications (run once) ───────────────────────────────────────────────────────────────
-exec --no-startup-id dex-autostart --autostart --environment i3    # Startup desktop files
-exec --no-startup-id syncthing --no-browser                        # Syncthing
+# ── Startup desktop files
+# ── Syncthing
+exec --no-startup-id dex-autostart --autostart --environment i3
+exec --no-startup-id syncthing --no-browser
 
 # ── Always Run (on reload) ────────────────────────────────────────────────────────────────────────
-exec_always --no-startup-id xmodmap ~/.Xmodmap                     # Swaps caps lock and windows key
-exec_always --no-startup-id picom -b                               # Compositor
-exec_always --no-startup-id feh --bg-fill /usr/share/backgrounds/speed.png # Set wallpaper everytime
+# ── Swaps caps lock and windows key
+# ── Compositor
+# ── Set wallpaper ever time so it updates with monitors
+exec_always --no-startup-id xmodmap ~/.Xmodmap
+exec_always --no-startup-id picom -b
+exec_always --no-startup-id feh --bg-fill /usr/share/backgrounds/speed.png
 
 # ── Keybinds ──────────────────────────────────────────────────────────────────────────────────────
-# Caps lock is super key
+# ── Caps lock is super key
+# ── launch flameshot (screenshot)
+# ── launch terminal
+# ── launch rofi (app launch menu)
+# ── kill focused window
+# ── reload the configuration file
+# ── restart i3 (preserve session)
 set $mod Mod4
-bindsym Print exec --no-startup-id flameshot gui                   # launch flameshot (screenshot)
-bindsym $mod+Return exec urxvt                                     # launch terminal
-bindsym $mod+d exec "rofi -show drun"                              # launch rofi (app launch menu)
+bindsym Print exec --no-startup-id flameshot gui
+bindsym $mod+Return exec urxvt
+bindsym $mod+d exec "rofi -show drun"
+bindsym $mod+q kill
+bindsym $mod+r reload
+bindsym $mod+Shift+r restart
+                          
 
 # ── Font ──────────────────────────────────────────────────────────────────────────────────────────
-font pango:JetBrainsMono NFM SemiBold 10                           # Font for window titles + i3 bar
+# ── Font for window titles and i3 bar
+font pango:JetBrainsMono NFM SemiBold 10
 
 
 # Temporary line to show where I'm at.
@@ -52,8 +68,6 @@ bindsym XF86AudioMicMute exec --no-startup-id pactl set-source-mute @DEFAULT_SOU
 # Use Mouse+$mod to drag floating windows to their wanted position
 floating_modifier $mod
 
-# kill focused window
-bindsym $mod+q kill
 
 # move the whole workspace to the next output
 bindsym $mod+x move workspace to output right
@@ -154,10 +168,6 @@ bindsym $mod+Shift+8 move container to workspace number $ws8
 bindsym $mod+Shift+9 move container to workspace number $ws9
 bindsym $mod+Shift+0 move container to workspace number $ws10
 
-# reload the configuration file
-bindsym $mod+Shift+c reload
-# restart i3 inplace (preserves your layout/session, can be used to upgrade i3)
-bindsym $mod+Shift+r restart
 # exit i3 (logs you out of your X session)
 bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -B 'Yes, exit i3' 'i3-msg exit'"
 
@@ -186,7 +196,8 @@ mode "resize" {
         bindsym $mod+r mode "default"
 }
 
-bindsym $mod+r mode "resize"
+# commented out temporarily, don't use this and want mod+r for reload
+# bindsym $mod+r mode "resize"
 
 # class                 border  bground text    indicator child_border
 client.focused          #83CAFA #51A2DA #FFFFFF #83CAFA   #51A2DA
