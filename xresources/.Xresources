@@ -6,7 +6,10 @@ Xft.dpi: 144
 Xcursor.size: 32
 
 !Font
-URxvt*font: xft:JetBrains Mono SemiBold:size=14
+! Nerd Font (= JetBrains Mono + patched icons/powerline glyphs), then DejaVu Sans
+! for dingbats (✗ ✻ ✶) it lacks. Explicit fallback so glyph coverage survives
+! runtime font changes (OSC 710), not just startup.
+URxvt*font: xft:JetBrainsMono Nerd Font:style=SemiBold:size=10,xft:DejaVu Sans:size=10
 
 !Colors
 URxvt*background: #000000
