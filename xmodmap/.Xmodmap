@@ -1,0 +1,6 @@
+clear lock
+clear mod4 
+keycode 66 = Super_L
+keycode 133 = Caps_Lock
+add lock = Caps_Lock 
+add mod4 = Super_L
