@@ -1,0 +1,44 @@
+!Font
+URxvt*font: xft:JetBrains Mono NFM SemiBold:pixelsize=20
+
+!Colors
+URxvt*background: #000000
+URxvt*foreground: #FFFFFF
+
+*color0: #000000
+*color1: #e22c3c
+*color2: #52eea3
+*color3: #ffd85e
+*color4: #437cf3
+*color5: #c952ed
+*color6: #51e1e9
+*color7: #FFFFFF
+*color8: #515768
+*color9: #e3365e
+*color10: #97e768
+*color11: #fa9f50
+*color12: #6f51f4
+*color13: #e54f9b
+*color14: #54b6f8 
+*color15: #E0E0E0
+
+!Remove Scrollbar
+URxvt*scrollBar: false
+
+!Cursor
+URxvt*cursorBlink: true
+URxvt*cursorUnderline: true
+
+!Extensions
+URxvt.perl-ext-common: default, selection-to-clipboard
+
+!Fix Copy Paste
+! These didnt work, the above extension works for selecting
+!URxvt.keysym.Shift-Control-V: eval:paste_clipboard
+URxvt.keysym.Shift-Control-C: eval:selection_to_clipboard
+!Not sure why this works and the others dont
+!Well now this doesnt work either 
+URxvt.keysym.C-C: perl:clipboard:copy
+URxvt.keysym.Shift-Control-V: eval:paste_clipboard
+!URxvt.keysym.C-S-V: perl:clipboard:paste
+!Also weird that I cant shift click to select, have to use mouse
