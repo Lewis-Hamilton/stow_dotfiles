@@ -1,0 +1,10 @@
+# Machine-local secrets live in ~/.config/shell/secrets.env (outside this repo).
+secrets.env
+*.secret
+
+# VSCodium: only settings.json + keybindings.json belong here.
+# Guards the User/ dir against runtime junk (History/, chatLanguageModels.json,
+# globalStorage/, ...) if stow ever re-folds ~/.var into the repo.
+vscodium/.var/app/com.vscodium.codium/config/VSCodium/User/*
+!vscodium/.var/app/com.vscodium.codium/config/VSCodium/User/settings.json
+!vscodium/.var/app/com.vscodium.codium/config/VSCodium/User/keybindings.json
