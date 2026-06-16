@@ -32,10 +32,8 @@ markup=none
 # Date Time
 #
 [time]
-command=date '+%I:%M %p %m/%d/%Y'
+command=$SCRIPT_DIR/time/time
 interval=10
-min_width=850
-align=center
 separator=false
 
 [flatpak_updates]

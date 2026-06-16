@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+# i3blocks clock, auto-centered on the i3bar.
+#
+# i3bar's status line is anchored to the RIGHT edge of the bar, and this block
+# (the first one in the config) is its leftmost member. To place the clock at
+# the screen's horizontal centre we right-pad it with spaces so the time's
+# midpoint lands at width/2.
+#
+# The padding must account for the combined width of every block to the clock's
+# RIGHT. Rather than hard-code that, we discover those blocks from the i3blocks
+# config and measure them at runtime -- so adding or removing blocks needs no
+# retuning. Each block's measured width is cached for its own `interval`, so the
+# expensive update-checkers aren't re-run on every clock tick.
+#
+# Geometry: the time text's right edge sits at (width - right_px); for its
+# centre to land at width/2 we pad the right side by
+#     rpad_px = width/2 - right_px - text_px/2
+# converted to spaces via the bar font's per-char width.
+
+CONFIG="${I3BLOCKS_CONFIG:-$HOME/.config/i3blocks/config}"
+: "${SCRIPT_DIR:=$HOME/.config/i3blocks/scripts}"
+
+char_px=8     # rendered width of one char in the bar font (JetBrainsMono SemiBold 10)
+sep_px=15     # separator_block_width from the config
+cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/i3blocks-clock"
+mkdir -p "$cache_dir"
+
+fmt='+%I:%M %p %m/%d/%Y'
+time_str=$(date "$fmt")
+
+# --- monitor width (primary, else first active output, else 1920) ----------
+geom_width() {
+  xrandr --query 2>/dev/null | awk -v want="$1" '
+    $0 ~ want && / connected/ { for (i = 1; i <= NF; i++)
+      if ($i ~ /^[0-9]+x[0-9]+\+/) { split($i, a, "x"); print a[1]; exit } }'
+}
+width=$(geom_width " primary"); [ -z "$width" ] && width=$(geom_width " connected")
+[ -z "$width" ] && width=1920
+
+# --- enumerate blocks after [time]: "name<TAB>command<TAB>interval" ---------
+blocks=$(awk '
+  function flush() { if (have) print name "\t" cmd "\t" intv; have = 0 }
+  /^[[:space:]]*#/ { next }
+  /^\[.*\]/ {
+    flush(); s = $0; sub(/^\[/, "", s); sub(/\].*$/, "", s); name = s
+    if (name == "time") { started = 1; next }
+    if (started) { cmd = defcmd; intv = defint; have = 1 }
+    next
+  }
+  started == 0 && /^command=/ { c = $0; sub(/^command=/, "", c); if (defcmd == "") defcmd = c; next }
+  have == 1   && /^command=/  { c = $0; sub(/^command=/, "", c); cmd = c; next }
+  have == 1   && /^interval=/ { v = $0; sub(/^interval=/, "", v); intv = v; next }
+  END { flush() }
+' defint=300 "$CONFIG")
+
+# --- measure each right-side block, caching by its interval -----------------
+measure() {  # $1=name $2=command $3=interval  -> visible char count
+  local name=$1 cmd=$2 intv=$3 cf="$cache_dir/$name" ttl now out vis
+  case $intv in (*[!0-9]*|'') ttl=300 ;; (*) ttl=$intv ;; esac
+  now=$(date +%s)
+  if [ -f "$cf" ] && [ $(( now - $(stat -c %Y "$cf" 2>/dev/null || echo 0) )) -lt "$ttl" ]; then
+    cat "$cf"; return
+  fi
+  cmd=${cmd//\$\{SCRIPT_DIR\}/$SCRIPT_DIR}; cmd=${cmd//\$SCRIPT_DIR/$SCRIPT_DIR}
+  cmd=${cmd//\$\{BLOCK_NAME\}/$name};       cmd=${cmd//\$BLOCK_NAME/$name}
+  out=$(BLOCK_NAME=$name timeout 5 bash -c "$cmd" 2>/dev/null | head -1)
+  vis=$(printf '%s' "$out" | sed -E 's/<[^>]+>//g')   # strip pango markup
+  printf '%s' "${#vis}" | tee "$cf"
+}
+
+total_chars=0; nblocks=0
+while IFS=$'\t' read -r name cmd intv; do
+  [ -n "$name" ] || continue
+  n=$(measure "$name" "$cmd" "$intv")
+  [ "${n:-0}" -gt 0 ] 2>/dev/null || continue
+  total_chars=$(( total_chars + n )); nblocks=$(( nblocks + 1 ))
+done <<< "$blocks"
+
+right_px=$(( total_chars * char_px + nblocks * sep_px ))
+text_px=$(( ${#time_str} * char_px ))
+rpad=$(( ( width / 2 - right_px - text_px / 2 ) / char_px ))
+[ "$rpad" -lt 0 ] && rpad=0
+
+printf '%s%*s\n' "$time_str" "$rpad" ''
