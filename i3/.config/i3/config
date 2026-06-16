@@ -56,11 +56,9 @@ exec --no-startup-id dex-autostart --autostart --environment i3
 
 # xss-lock grabs a logind suspend inhibit lock and will use i3lock to lock the
 # screen before suspend. Use loginctl lock-session to lock your screen.
-# commented out for movie
-# exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork
-# added this for locking screen
-#bindsym $mod+l exec loginctl lock-session
-bindsym $mod+l exec --no-startup-id i3lock -i Downloads/lockscreen.png
+exec_always --no-startup-id pkill -x light-locker; light-locker --lock-on-suspend
+# lock via logind so 1Password (and anything listening for the Lock signal) re-locks too
+bindsym $mod+l exec --no-startup-id loginctl lock-session
 bindsym $mod+s exec --no-startup-id systemctl suspend
 
 # launch flameshot
