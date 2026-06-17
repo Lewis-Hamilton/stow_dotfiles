@@ -1,0 +1,3 @@
+#!/bin/bash
+# Invoked by dunst on every notification.
+pkill -RTMIN+12 i3blocks 2>/dev/null

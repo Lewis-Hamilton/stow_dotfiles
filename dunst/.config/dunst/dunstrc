@@ -516,3 +516,8 @@
 [icon-slack]
     appname = Slack
     new_icon = /usr/share/pixmaps/slack.png
+
+# Script to send signal to i3blocks
+[i3blocks-refresh]
+    summary = "*"
+    script = ~/.config/i3blocks/scripts/notifications/on-notify
