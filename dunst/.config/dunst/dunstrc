@@ -25,7 +25,8 @@
     # dynamic width from 0 to 300
     # width = (0, 300)
     # constant width of 300
-    width = 300
+    # width = 300
+    width = (200, 500)
 
     # The height of a single notification, excluding the frame.
     # dynamic height from 0 to 300
@@ -104,7 +105,7 @@
     horizontal_padding = 8
 
     # Padding between text and icon.
-    text_icon_padding = 0
+    text_icon_padding = 15
 
     # Defines width in pixels of frame around the notification window.
     # Set to 0 to disable.
@@ -144,7 +145,7 @@
 
     ### Text ###
 
-    font = Monospace 8
+    font = JetBrainsMono NFM SemiBold 10
 
     # The spacing between lines.  If the height is smaller than the
     # font height, it will get raised to the font height.
@@ -186,7 +187,7 @@
     #   %n  progress value if set without any extra characters
     #   %%  literal %
     # Markup is allowed
-    format = "<b>%s</b>\n%b"
+    format = "<span size='x-large'><b>%s</b></span>\n%b"
 
     # Alignment of message text.
     # Possible values are "left", "center" and "right".
