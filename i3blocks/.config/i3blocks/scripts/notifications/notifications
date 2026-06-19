@@ -1,0 +1,85 @@
+#!/bin/bash
+# i3blocks notification-center block backed by dunst.
+#
+#   display  : bell icon + number of notifications (waiting + displayed + history)
+#   left     : open a rofi list of past notifications; selecting one re-pops it
+#   middle   : toggle Do-Not-Disturb (dunst pause)
+#   right    : clear the notification history
+#
+# Refreshes every `interval` seconds and instantly when signalled (see the
+# dunst [i3blocks-refresh] rule, which sends SIGRTMIN+12 on each notification).
+
+source ~/.my_colors.sh
+
+SIG=12
+refresh() { pkill -RTMIN+${SIG} i3blocks 2>/dev/null; }
+
+# Focus the window belonging to a notification's appname; i3 switches to the
+# workspace holding it. Appname != window class (e.g. "Slack" -> class "slack",
+# "Firefox" -> "org.mozilla.firefox"), so match case-insensitively as a
+# substring against class then instance. Returns nonzero if nothing matched.
+goto_app() {
+    local app="${1//\"/}"
+    [ -n "$app" ] || return 1
+    local crit
+    # i3 anchors criteria regex to the whole value, so wrap with .* to match the
+    # appname anywhere in the class (e.g. "Firefox" inside "org.mozilla.firefox").
+    for crit in class instance; do
+        i3-msg "[${crit}=\"(?i).*${app}.*\"] focus" 2>/dev/null | grep -q '"success":true' && return 0
+    done
+    return 1
+}
+
+show_list() {
+    # Snapshot history once so the menu and the chosen id stay in sync.
+    local hist idx id
+    hist=$(dunstctl history)
+    idx=$(printf '%s' "$hist" | python3 -c '
+import json, sys
+rows = json.load(sys.stdin)["data"][0]
+for n in rows:
+    a = n["appname"]["data"]
+    s = n["summary"]["data"]
+    b = n["body"]["data"].replace("\n", " ").strip()
+    line = (f"{a}: {s}" + (f" — {b}" if b else ""))[:140]
+    # Use the icon dunst resolved; if empty (e.g. Firefox embeds its image and
+    # exposes no path), fall back to the appname as an icon NAME -- rofis own
+    # resolver finds it (it handles hicolor, which dunsts lookup does not).
+    icon = n["icon_path"]["data"] or a.lower().replace(" ", "-")
+    sys.stdout.write(f"{line}\x00icon\x1f{icon}\n" if icon else line + "\n")
+' | rofi -dmenu -i -p "Notifications" -show-icons -format i)
+    [ -z "$idx" ] && return
+    # Pull the selected notification's id + appname (id first, appname second --
+    # appname may contain spaces so keep them on separate lines).
+    local meta id app
+    meta=$(printf '%s' "$hist" | python3 -c "import json,sys; n=json.load(sys.stdin)['data'][0][$idx]; print(n['id']['data']); print(n['appname']['data'])")
+    id=$(printf '%s\n' "$meta" | sed -n 1p)
+    app=$(printf '%s\n' "$meta" | sed -n 2p)
+    # Prefer jumping to the app's workspace; if it isn't open, re-show the note.
+    if ! goto_app "$app"; then
+        [ -n "$id" ] && dunstctl history-pop "$id"
+    fi
+    refresh
+}
+
+case "$BLOCK_BUTTON" in
+    1) show_list ;;
+    2) dunstctl set-paused toggle; refresh ;;
+    3) dunstctl history-clear; refresh ;;
+esac
+
+# Count everything dunst knows about: queued + on-screen + in history. This
+# bumps instantly on arrival (signal), and stays counted after expiry.
+w=$(dunstctl count waiting 2>/dev/null)
+d=$(dunstctl count displayed 2>/dev/null)
+h=$(dunstctl count history 2>/dev/null)
+count=$(( ${w:-0} + ${d:-0} + ${h:-0} ))
+
+if dunstctl is-paused 2>/dev/null | grep -q true; then
+    # Do-Not-Disturb
+    echo "<span color=\"$MY_RED\" size='large'>󰂛</span><span color=\"$MY_RED\"> ${count}</span>"
+elif [ "$count" -gt 0 ]; then
+    echo "<span color=\"$MY_YELLOW\" size='large'>󰂚</span><span color=\"$MY_YELLOW\"> ${count}</span>"
+else
+    echo "<span color=\"$MY_GREEN\" size='large'>󰂜</span><span color=\"$MY_GREEN\"> 0</span>"
+fi
