@@ -2,7 +2,9 @@
 # i3blocks notification-center block backed by dunst.
 #
 #   display  : bell icon + number of notifications (waiting + displayed + history)
-#   left     : open a rofi list of past notifications; selecting one re-pops it
+#   left     : open a rofi list of past notifications. Enter jumps to the app
+#              (or re-pops the note); Delete clears just the highlighted one and
+#              keeps the list open; the "Clear all" row at the top wipes history.
 #   middle   : toggle Do-Not-Disturb (dunst pause)
 #   right    : clear the notification history
 #
@@ -31,12 +33,26 @@ goto_app() {
 }
 
 show_list() {
-    # Snapshot history once so the menu and the chosen id stay in sync.
-    local hist idx id
-    hist=$(dunstctl history)
-    idx=$(printf '%s' "$hist" | python3 -c '
+    # Loop so deleting one notification can rebuild the menu and stay open.
+    # rofi exits 0 on Enter, 1 on Escape, and 10 for kb-custom-1 (Delete below).
+    local first=1
+    while :; do
+        local hist nhist idx rc meta id app hidx
+        hist=$(dunstctl history)
+        nhist=$(dunstctl count history 2>/dev/null)
+        if [ "${nhist:-0}" -eq 0 ]; then
+            # Only announce emptiness on first open, not after clearing the last.
+            [ "$first" -eq 1 ] && rofi -e "  No notifications"
+            break
+        fi
+        first=0
+        # Build the menu: a "Clear all" button first, then one row per history
+        # entry. With -format i, row 0 is the button; row i>=1 maps to the
+        # history entry at index i-1 (kept in sync via this single snapshot).
+        idx=$(printf '%s' "$hist" | python3 -c '
 import json, sys
 rows = json.load(sys.stdin)["data"][0]
+sys.stdout.write("  Clear all notifications\x00icon\x1fedit-delete\n")
 for n in rows:
     a = n["appname"]["data"]
     s = n["summary"]["data"]
@@ -47,18 +63,41 @@ for n in rows:
     # resolver finds it (it handles hicolor, which dunsts lookup does not).
     icon = n["icon_path"]["data"] or a.lower().replace(" ", "-")
     sys.stdout.write(f"{line}\x00icon\x1f{icon}\n" if icon else line + "\n")
-' | rofi -dmenu -i -p "Notifications" -show-icons -format i)
-    [ -z "$idx" ] && return
-    # Pull the selected notification's id + appname (id first, appname second --
-    # appname may contain spaces so keep them on separate lines).
-    local meta id app
-    meta=$(printf '%s' "$hist" | python3 -c "import json,sys; n=json.load(sys.stdin)['data'][0][$idx]; print(n['id']['data']); print(n['appname']['data'])")
-    id=$(printf '%s\n' "$meta" | sed -n 1p)
-    app=$(printf '%s\n' "$meta" | sed -n 2p)
-    # Prefer jumping to the app's workspace; if it isn't open, re-show the note.
-    if ! goto_app "$app"; then
-        [ -n "$id" ] && dunstctl history-pop "$id"
-    fi
+' | rofi -dmenu -i -p "Notifications" -show-icons -format i \
+        -mesg "Enter: open app     Del: clear notification     top row: clear all" \
+        -kb-remove-char-forward "" -kb-custom-1 "Delete")
+        rc=$?
+
+        # Escape or no selection: done.
+        [ "$rc" -eq 1 ] && break
+        [ -z "$idx" ] && break
+
+        # Row 0 is the Clear-all button: clear on Enter; ignore Delete on it.
+        if [ "$idx" -eq 0 ]; then
+            [ "$rc" -eq 0 ] && { dunstctl history-clear; break; }
+            continue
+        fi
+
+        # A real notification row -> resolve its dunst id + appname (id first,
+        # appname second -- appname may contain spaces, so keep them on
+        # separate lines). hidx accounts for the Clear-all row at index 0.
+        hidx=$(( idx - 1 ))
+        meta=$(printf '%s' "$hist" | python3 -c "import json,sys; n=json.load(sys.stdin)['data'][0][$hidx]; print(n['id']['data']); print(n['appname']['data'])")
+        id=$(printf '%s\n' "$meta" | sed -n 1p)
+        app=$(printf '%s\n' "$meta" | sed -n 2p)
+
+        # Delete (custom-1): drop just this notification and keep the list open.
+        if [ "$rc" -eq 10 ]; then
+            [ -n "$id" ] && dunstctl history-rm "$id"
+            continue
+        fi
+
+        # Enter: jump to the app's workspace; if it isn't open, re-show the note.
+        if ! goto_app "$app"; then
+            [ -n "$id" ] && dunstctl history-pop "$id"
+        fi
+        break
+    done
     refresh
 }
 
