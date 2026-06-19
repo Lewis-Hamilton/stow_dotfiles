@@ -1,5 +1,5 @@
 !Font
-URxvt*font: xft:JetBrains Mono NFM SemiBold:pixelsize=20
+URxvt*font: xft:JetBrains Mono NFM SemiBold:pixelsize=20,xft:Adwaita Mono:pixelsize=20
 
 !Colors
 URxvt*background: #000000
