@@ -61,6 +61,9 @@ exec_always --no-startup-id pkill -x light-locker; light-locker --lock-on-suspen
 bindsym $mod+l exec --no-startup-id loginctl lock-session
 bindsym $mod+s exec --no-startup-id systemctl suspend
 
+bindsym $mod+t resize set width 25 ppt
+bindsym $mod+i resize set width 75 ppt
+
 # launch flameshot
 bindsym Print exec --no-startup-id flameshot gui
 
