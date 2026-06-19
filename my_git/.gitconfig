@@ -2,6 +2,9 @@
 	email = 38916472+Lewis-Hamilton@users.noreply.github.com
 	name = Lewis
 
+[core]
+    editor = vim
+
 [fetch]
 	prune = true
 
