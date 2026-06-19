@@ -38,6 +38,11 @@ min_width=850
 align=center
 separator=false
 
+[uptime]
+command=$SCRIPT_DIR/uptime/uptime
+interval=600
+markup=pango
+
 [flatpak_updates]
 command=$SCRIPT_DIR/flatpak-updates/flatpak-updates
 interval=600

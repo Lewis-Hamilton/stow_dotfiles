@@ -1,0 +1,30 @@
+#!/bin/bash
+
+source ~/.my_colors.sh
+
+# System uptime, straight from the kernel.
+secs=$(awk '{print int($1)}' /proc/uptime)
+
+days=$((secs / 86400))
+hours=$(((secs % 86400) / 3600))
+
+if [[ "$hours" -lt 1 && "$days" -lt 1 ]]; then
+	uptime_str="<1h"
+	color=$MY_GREEN
+elif [[ "$hours" -ge 1 && "$days" -lt 1 ]]; then
+	uptime_str="${hours}h"
+	color=$MY_GREEN
+elif [[ "$days" -gt 0 && "$days" -lt 3 ]]; then
+	uptime_str="${days}d"
+	color=$MY_YELLOW
+elif [[ "$days" -ge 3 && "$days" -lt 5 ]]; then
+	uptime_str="${days}d"
+	color=$MY_ORANGE
+else
+	uptime_str="${days}d"
+	color=$MY_RED
+fi
+
+printf -v padded_output "%3s" "$uptime_str"
+
+echo "<span color=\"$color\">$padded_output </span><span color=\"$color\" size='large'>󰅐</span>"

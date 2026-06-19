@@ -2,5 +2,8 @@
 	email = 38916472+Lewis-Hamilton@users.noreply.github.com
 	name = Lewis
 
+[fetch]
+	prune = true
+
 [alias]
     trash = !git branch --merged | grep -v \"^\\*\\| main$\\| master$\" | xargs -r -n1 git branch -d
