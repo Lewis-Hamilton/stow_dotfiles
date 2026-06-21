@@ -27,6 +27,8 @@ exec_always --no-startup-id feh --bg-fill /usr/share/backgrounds/speed.png
 # ── kill focused window
 # ── reload the configuration file
 # ── restart i3 (preserve session)
+# ── brightness decrease
+# ── brightness increase
 set $mod Mod4
 bindsym Print exec --no-startup-id flameshot gui
 bindsym $mod+Return exec urxvt
@@ -34,7 +36,8 @@ bindsym $mod+d exec "rofi -show drun"
 bindsym $mod+q kill
 bindsym $mod+r reload
 bindsym $mod+Shift+r restart
-                          
+bindcode 232 exec --no-startup-id brightnessctl set 10%- && pkill -SIGRTMIN+9 i3blocks
+bindcode 233 exec --no-startup-id brightnessctl set +10% && pkill -SIGRTMIN+9 i3blocks
 
 # ── Font ──────────────────────────────────────────────────────────────────────────────────────────
 # ── Font for window titles and i3 bar
@@ -77,8 +80,6 @@ exec --no-startup-id systemctl --user start i3-session.target
 bindsym $mod+x move workspace to output right
 
 
-bindcode 232 exec --no-startup-id brightnessctl set 10%- && pkill -SIGRTMIN+9 i3blocks
-bindcode 233 exec --no-startup-id brightnessctl set +10% && pkill -SIGRTMIN+9 i3blocks
 # bindsym $mod --release exec "rofi -show drun"
 # There also is i3-dmenu-desktop which only displays applications shipping a
 # .desktop file. It is a wrapper around dmenu, so you need that installed.
