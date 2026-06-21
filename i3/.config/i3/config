@@ -24,7 +24,8 @@ exec_always --no-startup-id feh --bg-fill /usr/share/backgrounds/speed.png
 # ── launch flameshot (screenshot)
 # ── launch terminal
 # ── launch rofi (app launch menu)
-# ── kill focused window
+# ── focused window fullscreen
+# ── focused window kill
 # ── reload the configuration file
 # ── restart i3 (preserve session)
 # ── brightness decrease
@@ -33,6 +34,7 @@ set $mod Mod4
 bindsym Print exec --no-startup-id flameshot gui
 bindsym $mod+Return exec urxvt
 bindsym $mod+d exec "rofi -show drun"
+bindsym $mod+f fullscreen toggle
 bindsym $mod+q kill
 bindsym $mod+r reload
 bindsym $mod+Shift+r restart
@@ -110,8 +112,6 @@ bindsym $mod+h split h
 # split in vertical orientation
 bindsym $mod+v split v
 
-# enter fullscreen mode for the focused container
-bindsym $mod+f fullscreen toggle
 
 # change container layout (stacked, tabbed, toggle split)
 # turned this off because I don't use it, want mod+s for suspend
