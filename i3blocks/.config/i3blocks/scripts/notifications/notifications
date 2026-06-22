@@ -116,9 +116,9 @@ count=$(( ${w:-0} + ${d:-0} + ${h:-0} ))
 
 if dunstctl is-paused 2>/dev/null | grep -q true; then
     # Do-Not-Disturb
-    echo "<span color=\"$MY_RED\" size='large'>󰂛</span><span color=\"$MY_RED\"> ${count}</span>"
+    echo "<span color=\"$MY_RED\">${count} </span><span color=\"$MY_RED\" size='large'>󰂛</span>"
 elif [ "$count" -gt 0 ]; then
-    echo "<span color=\"$MY_YELLOW\" size='large'>󰂚</span><span color=\"$MY_YELLOW\"> ${count}</span>"
+    echo "<span color=\"$MY_YELLOW\">${count} </span><span color=\"$MY_YELLOW\" size='large'>󰂚</span>"
 else
-    echo "<span color=\"$MY_GREEN\" size='large'>󰂜</span><span color=\"$MY_GREEN\"> 0</span>"
+    echo "<span color=\"$MY_GREEN\">0 </span><span color=\"$MY_GREEN\" size='large'>󰂜</span>"
 fi
