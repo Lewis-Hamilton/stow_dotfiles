@@ -34,15 +34,19 @@ markup=none
 [time]
 command=date '+%I:%M %p %m/%d/%Y'
 interval=10
-min_width=850
-align=center
-separator=false
 
 [notifications]
 command=$SCRIPT_DIR/notifications/notifications
 interval=30
+separator=false
 signal=12
 markup=pango
+
+[separator_section]
+command=echo " "
+interval=once
+separator=false
+min_width=900
 
 [uptime]
 command=$SCRIPT_DIR/uptime/uptime
