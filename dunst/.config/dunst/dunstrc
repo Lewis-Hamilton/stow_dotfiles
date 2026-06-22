@@ -216,7 +216,7 @@
     hide_duplicate_count = false
 
     # Display indicators for URLs (U) and actions (A).
-    show_indicators = yes
+    show_indicators = no
 
     # When set to true (recommended), you can use POSIX regular expressions for filtering rules.
     # If this is set to false (not recommended), dunst will use fnmatch(3) for matching strings.
