@@ -355,6 +355,10 @@
     # This setting overrides enable_posix_regex.
     enable_pcre_regex = false
 
+[slack_low]
+    appname = Slack
+    urgency = low
+
 [urgency_low]
     # IMPORTANT: colors have to be defined in quotation marks.
     # Otherwise the "#" and following would be interpreted as a comment.
