@@ -370,7 +370,7 @@
     # Otherwise the "#" and following would be interpreted as a comment.
     background = "#222222"
     foreground = "#ffffff"
-    timeout = 10
+    timeout = 8
     # Icon for notifications with low urgency
     default_icon = dialog-information
 
