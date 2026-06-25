@@ -331,8 +331,10 @@
     # * context_all: Open context menu for all notifications.
     # These values can be strung together for each mouse event, and
     # will be executed in sequence.
-    # remove_current (not close_current) dismisses without saving to history.
-    mouse_left_click = remove_current
+    # do_action invokes the notification's action (e.g. focus the app/tab);
+    # remove_current then dismisses it without saving to history. Order matters:
+    # act first, remove second (removing first would invalidate the action).
+    mouse_left_click = do_action, remove_current
     mouse_middle_click = do_action, close_current
     mouse_right_click = close_all
 
