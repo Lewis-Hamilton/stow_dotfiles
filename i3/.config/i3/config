@@ -53,16 +53,16 @@ font pango:JetBrainsMono NFM SemiBold 10
 
 # ──────────────────────────────────────────────────────────────────────────────────── Workspaces ──
 # ── Variables ─────────────────────────────────────────────────────────────────────────────────────
-set $ws1 "1:01 - Start"
-set $ws2 "2:02 - Project"
-set $ws3 "3:03 - Project"
-set $ws4 "4:04 - Project"
-set $ws5 "5:05 - Project"
-set $ws6 "6:06 - Project"
-set $ws7 "7:07 - Project"
-set $ws8 "8:08 - Project"
-set $ws9 "9:09 - Media"
-set $ws10 "10:10 - Utils"
+set $ws1 "1:󰬺 Home"
+set $ws2 "2:󰬻"
+set $ws3 "3:󰬼"
+set $ws4 "4:󰬽"
+set $ws5 "5:󰬾"
+set $ws6 "6:󰬿"
+set $ws7 "7:󰭀"
+set $ws8 "8:󰭁"
+set $ws9 "9:󰭂 Media"
+set $ws10 "10:Utilities"
 
 # ── Switch Keybinds ───────────────────────────────────────────────────────────────────────────────
 bindsym $mod+1 workspace number $ws1
@@ -93,7 +93,7 @@ bindsym $mod+Shift+0 move container to workspace number $ws10
 
 # Temporary line to show where I'm at.
 
-
+bindsym $mod+n exec --no-startup-id ~/.config/i3/scripts/rename-workspace.sh
 
 # The combination of xss-lock, nm-applet and pactl is a popular choice, so
 # they are included here as an example. Modify as you see fit.
@@ -253,6 +253,7 @@ bar {
   position top
   strip_workspace_name no
   strip_workspace_numbers yes
+  workspace_min_width 125
   colors {
     background #000000
     statusline #ffffff
