@@ -65,9 +65,6 @@ bindsym $mod+s exec --no-startup-id systemctl suspend
 bindsym $mod+t resize set width 25 ppt
 bindsym $mod+i resize set width 75 ppt
 
-# launch flameshot
-bindsym Print exec --no-startup-id flameshot gui
-
 # NetworkManager is the most popular way to manage wireless networks on Linux,
 # and nm-applet is a desktop environment-independent system tray GUI for it.
 exec --no-startup-id nm-applet
