@@ -50,17 +50,27 @@ font pango:JetBrainsMono NFM SemiBold 10
 
 
 
+exec --no-startup-id dunst
+
 # The combination of xss-lock, nm-applet and pactl is a popular choice, so
 # they are included here as an example. Modify as you see fit.
 
 # xss-lock grabs a logind suspend inhibit lock and will use i3lock to lock the
 # screen before suspend. Use loginctl lock-session to lock your screen.
-# commented out for movie
-# exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork
-# added this for locking screen
-#bindsym $mod+l exec loginctl lock-session
-bindsym $mod+l exec --no-startup-id i3lock -i Downloads/lockscreen.png
+exec_always --no-startup-id pkill -x light-locker; light-locker --lock-on-suspend
+# lock via logind so 1Password (and anything listening for the Lock signal) re-locks too
+bindsym $mod+l exec --no-startup-id loginctl lock-session
 bindsym $mod+s exec --no-startup-id systemctl suspend
+
+bindsym $mod+t resize set width 25 ppt
+bindsym $mod+i resize set width 75 ppt
+
+# launch flameshot
+bindsym Print exec --no-startup-id flameshot gui
+
+# NetworkManager is the most popular way to manage wireless networks on Linux,
+# and nm-applet is a desktop environment-independent system tray GUI for it.
+exec --no-startup-id nm-applet
 
 # Use wpctl to adjust volume in Pipewire.
 set $refresh_i3status killall -SIGUSR1 i3status

@@ -9,7 +9,7 @@ days=$((secs / 86400))
 hours=$(((secs % 86400) / 3600))
 
 if [[ "$hours" -lt 1 && "$days" -lt 1 ]]; then
-	uptime_str="<1h"
+	uptime_str="-1h"
 	color=$MY_GREEN
 elif [[ "$hours" -ge 1 && "$days" -lt 1 ]]; then
 	uptime_str="${hours}h"
