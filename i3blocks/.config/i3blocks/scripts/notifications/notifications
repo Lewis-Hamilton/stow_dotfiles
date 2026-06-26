@@ -1,15 +1,4 @@
 #!/bin/bash
-# i3blocks notification-center block backed by dunst.
-#
-#   display  : bell icon + number of notifications (waiting + displayed + history)
-#   left     : open a rofi list of past notifications. Enter jumps to the app
-#              (or re-pops the note); Delete clears just the highlighted one and
-#              keeps the list open; the "Clear all" row at the top wipes history.
-#   middle   : toggle Do-Not-Disturb (dunst pause)
-#   right    : clear the notification history
-#
-# Refreshes every `interval` seconds and instantly when signalled (see the
-# dunst [i3blocks-refresh] rule, which sends SIGRTMIN+12 on each notification).
 
 source ~/.my_colors.sh
 
