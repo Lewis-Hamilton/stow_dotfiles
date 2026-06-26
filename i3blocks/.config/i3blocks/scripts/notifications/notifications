@@ -1,0 +1,113 @@
+#!/bin/bash
+
+source ~/.my_colors.sh
+
+SIG=12
+refresh() { pkill -RTMIN+${SIG} i3blocks 2>/dev/null; }
+
+# Focus the window belonging to a notification's appname; i3 switches to the
+# workspace holding it. Appname != window class (e.g. "Slack" -> class "slack",
+# "Firefox" -> "org.mozilla.firefox"), so match case-insensitively as a
+# substring against class then instance. Returns nonzero if nothing matched.
+goto_app() {
+    local app="${1//\"/}"
+    [ -n "$app" ] || return 1
+    local crit
+    # i3 anchors criteria regex to the whole value, so wrap with .* to match the
+    # appname anywhere in the class (e.g. "Firefox" inside "org.mozilla.firefox").
+    for crit in class instance; do
+        i3-msg "[${crit}=\"(?i).*${app}.*\"] focus" 2>/dev/null | grep -q '"success":true' && return 0
+    done
+    return 1
+}
+
+show_list() {
+    # Loop so deleting one notification can rebuild the menu and stay open.
+    # rofi exits 0 on Enter, 1 on Escape, and 10 for kb-custom-1 (Delete below).
+    local first=1
+    while :; do
+        local hist nhist idx rc meta id app hidx
+        hist=$(dunstctl history)
+        nhist=$(dunstctl count history 2>/dev/null)
+        if [ "${nhist:-0}" -eq 0 ]; then
+            # Only announce emptiness on first open, not after clearing the last.
+            [ "$first" -eq 1 ] && rofi -e "  No notifications"
+            break
+        fi
+        first=0
+        # Build the menu: a "Clear all" button first, then one row per history
+        # entry. With -format i, row 0 is the button; row i>=1 maps to the
+        # history entry at index i-1 (kept in sync via this single snapshot).
+        idx=$(printf '%s' "$hist" | python3 -c '
+import json, sys
+rows = json.load(sys.stdin)["data"][0]
+sys.stdout.write("  Clear all notifications\x00icon\x1fedit-delete\n")
+for n in rows:
+    a = n["appname"]["data"]
+    s = n["summary"]["data"]
+    b = n["body"]["data"].replace("\n", " ").strip()
+    line = (f"{a}: {s}" + (f" — {b}" if b else ""))[:140]
+    # Use the icon dunst resolved; if empty (e.g. Firefox embeds its image and
+    # exposes no path), fall back to the appname as an icon NAME -- rofis own
+    # resolver finds it (it handles hicolor, which dunsts lookup does not).
+    icon = n["icon_path"]["data"] or a.lower().replace(" ", "-")
+    sys.stdout.write(f"{line}\x00icon\x1f{icon}\n" if icon else line + "\n")
+' | rofi -dmenu -i -p "Notifications" -show-icons -format i \
+        -mesg "Enter: open app     Del: clear notification     top row: clear all" \
+        -kb-remove-char-forward "" -kb-custom-1 "Delete")
+        rc=$?
+
+        # Escape or no selection: done.
+        [ "$rc" -eq 1 ] && break
+        [ -z "$idx" ] && break
+
+        # Row 0 is the Clear-all button: clear on Enter; ignore Delete on it.
+        if [ "$idx" -eq 0 ]; then
+            [ "$rc" -eq 0 ] && { dunstctl history-clear; break; }
+            continue
+        fi
+
+        # A real notification row -> resolve its dunst id + appname (id first,
+        # appname second -- appname may contain spaces, so keep them on
+        # separate lines). hidx accounts for the Clear-all row at index 0.
+        hidx=$(( idx - 1 ))
+        meta=$(printf '%s' "$hist" | python3 -c "import json,sys; n=json.load(sys.stdin)['data'][0][$hidx]; print(n['id']['data']); print(n['appname']['data'])")
+        id=$(printf '%s\n' "$meta" | sed -n 1p)
+        app=$(printf '%s\n' "$meta" | sed -n 2p)
+
+        # Delete (custom-1): drop just this notification and keep the list open.
+        if [ "$rc" -eq 10 ]; then
+            [ -n "$id" ] && dunstctl history-rm "$id"
+            continue
+        fi
+
+        # Enter: jump to the app's workspace; if it isn't open, re-show the note.
+        if ! goto_app "$app"; then
+            [ -n "$id" ] && dunstctl history-pop "$id"
+        fi
+        break
+    done
+    refresh
+}
+
+case "$BLOCK_BUTTON" in
+    1) show_list ;;
+    2) dunstctl set-paused toggle; refresh ;;
+    3) dunstctl history-clear; refresh ;;
+esac
+
+# Count everything dunst knows about: queued + on-screen + in history. This
+# bumps instantly on arrival (signal), and stays counted after expiry.
+w=$(dunstctl count waiting 2>/dev/null)
+d=$(dunstctl count displayed 2>/dev/null)
+h=$(dunstctl count history 2>/dev/null)
+count=$(( ${w:-0} + ${d:-0} + ${h:-0} ))
+
+if dunstctl is-paused 2>/dev/null | grep -q true; then
+    # Do-Not-Disturb
+    echo "<span color=\"$MY_RED\">${count} </span><span color=\"$MY_RED\" size='large'>󰂛</span>"
+elif [ "$count" -gt 0 ]; then
+    echo "<span color=\"$MY_YELLOW\">${count} </span><span color=\"$MY_YELLOW\" size='large'>󰂚</span>"
+else
+    echo "<span color=\"$MY_GREEN\">0 </span><span color=\"$MY_GREEN\" size='large'>󰂜</span>"
+fi
