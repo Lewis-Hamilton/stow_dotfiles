@@ -53,16 +53,16 @@ font pango:JetBrainsMono NFM SemiBold 10
 
 # ──────────────────────────────────────────────────────────────────────────────────── Workspaces ──
 # ── Variables ─────────────────────────────────────────────────────────────────────────────────────
-set $ws1 "1:1 - Obsidian"
-set $ws2 "2:2 - Web"
-set $ws3 "3:3 - Terminal"
-set $ws4 "4:4 - Other"
-set $ws5 "5:5 - Unnamed"
-set $ws6 "6:6 - Unnamed"
-set $ws7 "7:7 - Unnamed"
-set $ws8 "8:8 - Unnamed"
-set $ws9 "9:9 - Unnamed"
-set $ws10 "10:10 - Unnamed"
+set $ws1 "1:01 - Start"
+set $ws2 "2:02 - Project"
+set $ws3 "3:03 - Project"
+set $ws4 "4:04 - Project"
+set $ws5 "5:05 - Project"
+set $ws6 "6:06 - Project"
+set $ws7 "7:07 - Project"
+set $ws8 "8:08 - Project"
+set $ws9 "9:09 - Media"
+set $ws10 "10:10 - Utils"
 
 # ── Switch Keybinds ───────────────────────────────────────────────────────────────────────────────
 bindsym $mod+1 workspace number $ws1
