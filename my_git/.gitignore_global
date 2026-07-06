@@ -4,4 +4,7 @@
 __pycache__/
 
 # Machine-specific local configurations
-.bash_local
+.bashrc.d/*
+
+# BUT allow tracking of global script
+!.bashrc.d/global.sh
