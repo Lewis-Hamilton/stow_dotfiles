@@ -10,11 +10,13 @@
 # ── Display + XAUTHORITY variables to systemd
 # ── Display + XAUTHORITY variables to dbus
 # ── Start system target
+# ── Polkit auth agent (so 1Password can use system auth)
 # ── Syncthing
 exec --no-startup-id dex-autostart --autostart --environment i3
 exec --no-startup-id systemctl --user import-environment DISPLAY XAUTHORITY
 exec --no-startup-id dbus-update-activation-environment --systemd DISPLAY XAUTHORITY
 exec --no-startup-id systemctl --user start i3-session.target
+exec --no-startup-id /usr/libexec/polkit-mate-authentication-agent-1
 exec --no-startup-id syncthing --no-browser
 
 # ── Always Run (on reload) ────────────────────────────────────────────────────────────────────────
@@ -227,13 +229,6 @@ for_window [class="^.*"] border pixel 0
 
 for_window [class="URxvt"] border pixel 1
 client.focused #ffffff #ffffff #ffffff #ffffff #ffffff 
-
-# Start Keyring daemon for 1Password
-# This one didn't work
-# exec /usr/bin/gnome-keyring-daemon --start --components=secrets
-# 2nd try
-# exec --no-startup-id /usr/libexec/gnome-settings-daemon &
-
 
 # Start i3bar to display a workspace bar (plus the system information i3status
 # finds out, if available)
