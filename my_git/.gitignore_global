@@ -1,0 +1,7 @@
+# System and Editor junk
+*.swp
+.DS_Store
+__pycache__/
+
+# Machine-specific local configurations
+.bash_local
