@@ -34,6 +34,8 @@ exec_always --no-startup-id feh --bg-fill /usr/share/backgrounds/speed.png
 # ── focused window kill
 # ── reload the configuration file
 # ── restart i3 (preserve session)
+# ── Sleep system
+# ── Launch shutdown/reboot menu
 # ── brightness decrease
 # ── brightness increase
 set $mod Mod4
@@ -44,6 +46,8 @@ bindsym $mod+f fullscreen toggle
 bindsym $mod+q kill
 bindsym $mod+r reload
 bindsym $mod+Shift+r restart
+bindsym $mod+s exec --no-startup-id systemctl suspend
+bindsym $mod+shift+s exec --no-startup-id ~/.config/i3/scripts/power-menu.sh
 bindcode 232 exec --no-startup-id brightnessctl set 10%- && pkill -SIGRTMIN+9 i3blocks
 bindcode 233 exec --no-startup-id brightnessctl set +10% && pkill -SIGRTMIN+9 i3blocks
 
@@ -103,7 +107,6 @@ bindsym $mod+n exec --no-startup-id ~/.config/i3/scripts/rename-workspace.sh
 exec_always --no-startup-id pkill -x light-locker; light-locker --lock-on-suspend
 # lock via logind so 1Password (and anything listening for the Lock signal) re-locks too
 bindsym $mod+l exec --no-startup-id loginctl lock-session
-bindsym $mod+s exec --no-startup-id systemctl suspend
 
 bindsym $mod+t resize set width 25 ppt
 bindsym $mod+i resize set width 75 ppt
