@@ -83,6 +83,11 @@ interval=once
 signal=9
 markup=pango
 
+[gpu]
+command=$SCRIPT_DIR/gpu/gpu
+interval=15
+markup=pango
+
 # Memory usage
 #
 # The type defaults to "mem" if the instance is not specified.
