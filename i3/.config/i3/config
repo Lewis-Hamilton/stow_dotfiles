@@ -24,7 +24,7 @@ exec --no-startup-id syncthing --no-browser
 # ── Compositor
 # ── Set wallpaper ever time so it updates with monitors
 exec_always --no-startup-id xmodmap ~/.Xmodmap
-exec_always --no-startup-id picom -b
+exec_always --no-startup-id ~/.config/i3/scripts/start-compositor.sh
 exec_always --no-startup-id feh --bg-fill /usr/share/backgrounds/speed.png
 
 # ── Keybinds ──────────────────────────────────────────────────────────────────────────────────────
@@ -69,6 +69,7 @@ set $ws7 "7:󰭀"
 set $ws8 "8:󰭁"
 set $ws9 "9:󰭂 Media"
 set $ws10 "10:Utilities"
+set $ws11 "11:Game"
 
 # ── Switch Keybinds ───────────────────────────────────────────────────────────────────────────────
 bindsym $mod+1 workspace number $ws1
@@ -81,6 +82,7 @@ bindsym $mod+7 workspace number $ws7
 bindsym $mod+8 workspace number $ws8
 bindsym $mod+9 workspace number $ws9
 bindsym $mod+0 workspace number $ws10
+bindsym $mod+g workspace number $ws11
 
 # ── Move Keybinds ─────────────────────────────────────────────────────────────────────────────────
 bindsym $mod+Shift+1 move container to workspace number $ws1
@@ -93,11 +95,29 @@ bindsym $mod+Shift+7 move container to workspace number $ws7
 bindsym $mod+Shift+8 move container to workspace number $ws8
 bindsym $mod+Shift+9 move container to workspace number $ws9
 bindsym $mod+Shift+0 move container to workspace number $ws10
-
+bindsym $mod+Shift+g move container to workspace number $ws11
 
 
 
 # Temporary line to show where I'm at.
+set $game_monitor "DP-4"
+workspace $ws11 output $game_monitor
+
+# assign [class="steam_app_.*"] $ws11
+# assign [class="cs2"] $ws11
+# assign [class="gamescope"] $ws11
+# assign [class="Steam"] $ws11
+
+# for_window [class="cs2"] move to workspace $ws11
+# for_window [class="steam_app_.*"] move to workspace $ws11
+# for_window [class="gamescope"] move to workspace $ws11
+
+
+# Catch the game using multiple identifiers to beat the race condition
+for_window [class="cs2"] move to workspace $ws11
+for_window [instance="cs2"] move to workspace $ws11
+for_window [title="Counter-Strike 2"] move to workspace $ws11
+for_window [class="steam_app_730"] move to workspace $ws11
 
 bindsym $mod+n exec --no-startup-id ~/.config/i3/scripts/rename-workspace.sh
 

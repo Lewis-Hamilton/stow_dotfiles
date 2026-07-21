@@ -85,7 +85,7 @@ markup=pango
 
 [gpu]
 command=$SCRIPT_DIR/gpu/gpu
-interval=15
+interval=20
 markup=pango
 
 # Memory usage
@@ -94,7 +94,7 @@ markup=pango
 [memory]
 command=$SCRIPT_DIR/memory/memory
 # separator=false
-interval=15
+interval=20
 markup=pango
 
 # Network interface monitoring
@@ -125,7 +125,7 @@ interval=5
 
 [cpu]
 command=$SCRIPT_DIR/cpu/cpu
-interval=15
+interval=20
 markup=pango
 
 [load_average]
