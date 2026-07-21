@@ -3,4 +3,6 @@
     "editor.fontFamily": "JetBrainsMono NFM SemiBold",
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "workbench.colorTheme": "Default Dark Modern",
+    "editor.semanticHighlighting.enabled": true,
 }
