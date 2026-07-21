@@ -1,0 +1,10 @@
+# System and Editor junk
+*.swp
+.DS_Store
+__pycache__/
+
+# Machine-specific local configurations
+.bashrc.d/*
+
+# BUT allow tracking of global script
+!.bashrc.d/global.sh

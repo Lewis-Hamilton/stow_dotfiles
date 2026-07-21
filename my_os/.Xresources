@@ -6,8 +6,11 @@ URxvt*background: #000000
 URxvt*foreground: #FFFFFF
 
 *color0: #000000
+! MY_RED
 *color1: #e22c3c
+! MY_GREEN
 *color2: #52eea3
+! MY_YELLOW
 *color3: #ffd85e
 *color4: #437cf3
 *color5: #c952ed
@@ -16,7 +19,8 @@ URxvt*foreground: #FFFFFF
 *color8: #515768
 *color9: #e3365e
 *color10: #97e768
-*color11: #fa9f50
+! MY_ORANGE
+*color11: #ee6748
 *color12: #6f51f4
 *color13: #e54f9b
 *color14: #54b6f8 
