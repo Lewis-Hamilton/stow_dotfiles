@@ -83,13 +83,18 @@ interval=once
 signal=9
 markup=pango
 
+[gpu]
+command=$SCRIPT_DIR/gpu/gpu
+interval=20
+markup=pango
+
 # Memory usage
 #
 # The type defaults to "mem" if the instance is not specified.
 [memory]
 command=$SCRIPT_DIR/memory/memory
 # separator=false
-interval=15
+interval=20
 markup=pango
 
 # Network interface monitoring
@@ -118,14 +123,9 @@ interval=5
 # see the script for details.
 #separator=false
 
-[fan_speed]
-command=$SCRIPT_DIR/fan_speed/fan_speed
-interval=15
-markup=pango
-
 [cpu]
 command=$SCRIPT_DIR/cpu/cpu
-interval=15
+interval=20
 markup=pango
 
 [load_average]

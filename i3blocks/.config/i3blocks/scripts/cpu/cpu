@@ -21,7 +21,7 @@ else
         usage_color=$MY_RED
 fi
 
-# CPU Temperature
+# CPU Temperature and Fan Speed
 
 # 1. Capture raw sensors data once
 sensors_raw=$(sensors)
@@ -36,11 +36,10 @@ fi
 # 3. Apply your exact extraction and rounding logic
 temperature=$(echo "$target_line" | awk -F '[+°]' '{print $2}')
 formatted_temperature=$(echo "$temperature" | awk '{printf "%.0f", $1}')
+fan_speed=$(echo "$sensors_raw" | grep "fan2:" | awk -F: '{print $2}' | awk '{print $1}')
 
-# Fallback check if both grep attempts somehow failed
-if [[ -z "$formatted_temperature" ]]; then
-    formatted_temperature="error"
-fi
+[[ -z "$fan_speed" ]] && fan_speed="ERR"
+[[ -z "$formatted_temperature" ]] && formatted_temperature="ERR"
 
 if [ "$formatted_temperature" -le 50 ]; then
         temp_color=$MY_GREEN
@@ -52,6 +51,17 @@ else
         temp_color=$MY_RED
 fi
 
-printf -v padded_usage "%3s" "$OUTPUT_VALUE"
+if [ "$fan_speed" -le 800 ]; then
+    fan_color=$MY_GREEN
+elif [[ "$fan_speed" -gt 800 && "$fan_speed" -le 1600 ]]; then
+    fan_color=$MY_YELLOW
+elif [[ "$fan_speed" -gt 1600 && "$fan_speed" -le 2400 ]]; then
+    fan_color=$MY_ORANGE
+else
+    fan_color=$MY_RED
+fi
 
-echo "<span color=\"$usage_color\" size='large'>󰓅</span><span color=\"$usage_color\"> $padded_usage</span><span size='large'> 󰟀 </span><span color=\"$temp_color\">$formatted_temperature°C </span><span color=\"$temp_color\" size='large'></span>"
+printf -v padded_usage "%3s" "$OUTPUT_VALUE"
+printf -v padded_fan_speed "%04d" "$fan_speed" 
+
+echo "<span color=\"$fan_color\">$padded_fan_speed </span><span color=\"$fan_color\" size='large'>󰈐</span> - <span color=\"$usage_color\" size='large'>󰓅</span><span color=\"$usage_color\"> $padded_usage</span><span size='large'> 󰟀 </span><span color=\"$temp_color\">$formatted_temperature°C </span><span color=\"$temp_color\" size='large'></span>"
