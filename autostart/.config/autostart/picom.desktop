@@ -1,5 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=picom
-Exec=picom
-NotShowIn=i3;
