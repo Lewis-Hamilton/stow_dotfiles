@@ -83,6 +83,11 @@ interval=once
 signal=9
 markup=pango
 
+[gpu]
+command=$SCRIPT_DIR/gpu/gpu
+interval=15
+markup=pango
+
 # Memory usage
 #
 # The type defaults to "mem" if the instance is not specified.
@@ -117,11 +122,6 @@ interval=5
 # The script may be called with -w and -c switches to specify thresholds,
 # see the script for details.
 #separator=false
-
-[fan_speed]
-command=$SCRIPT_DIR/fan_speed/fan_speed
-interval=15
-markup=pango
 
 [cpu]
 command=$SCRIPT_DIR/cpu/cpu

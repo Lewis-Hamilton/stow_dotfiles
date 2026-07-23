@@ -1,0 +1,48 @@
+#!/bin/bash
+
+source ~/.my_colors.sh
+
+# Usage, Temperature, Fan Speed
+gpu_data=$(nvidia-smi --query-gpu=utilization.gpu,temperature.gpu,fan.speed --format=csv,noheader,nounits 2>/dev/null)
+IFS=', ' read -r usage temperature fan_speed <<< "$gpu_data"
+formatted_usage=${usage}%
+
+if [ "$usage" -le 50 ]; then
+        usage_color=$MY_GREEN
+elif [[ "$usage" -gt 50 && "$usage" -le 70 ]]; then
+        usage_color=$MY_YELLOW
+elif [[ "$usage" -gt 70 && "$usage" -le 85 ]]; then
+        usage_color=$MY_ORANGE
+elif [[ "$usage" -gt 85 && "$usage" -le 99 ]]; then
+        usage_color=$MY_RED
+elif [ "$usage" -gt 99 ]; then
+        OUTPUT_VALUE=""
+else
+        OUTPUT_VALUE="ERR"
+        usage_color=$MY_RED
+fi
+
+if [ "$temperature" -le 50 ]; then
+        temp_color=$MY_GREEN
+elif [[ "$temperature" -gt 50 && "$temperature" -le 60 ]]; then
+        temp_color=$MY_YELLOW
+elif [[ "$temperature" -gt 60 && "$temperature" -le 70 ]]; then
+        temp_color=$MY_ORANGE
+else
+        temp_color=$MY_RED
+fi
+
+if [ "$fan_speed" -le 800 ]; then
+    fan_color=$MY_GREEN
+elif [[ "$fan_speed" -gt 800 && "$fan_speed" -le 1600 ]]; then
+    fan_color=$MY_YELLOW
+elif [[ "$fan_speed" -gt 1600 && "$fan_speed" -le 2400 ]]; then
+    fan_color=$MY_ORANGE
+else
+    fan_color=$MY_RED
+fi
+
+printf -v padded_usage "%3s" "$formatted_usage"
+printf -v padded_fan_speed "%04d" "$fan_speed"
+
+echo "<span color=\"$fan_color\">$padded_fan_speed </span><span color=\"$fan_color\" size='large'>󰈐</span> - <span color=\"$usage_color\" size='large'>󰓅</span><span color=\"$usage_color\"> $padded_usage</span><span size='large'> 󰖺 </span><span color=\"$temp_color\">$temperature°C </span><span color=\"$temp_color\" size='large'></span>"
