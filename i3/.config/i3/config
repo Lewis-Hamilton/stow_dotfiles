@@ -100,8 +100,7 @@ bindsym $mod+Shift+g move container to workspace number $ws11
 
 
 # Temporary line to show where I'm at.
-set $game_monitor "DP-4"
-workspace $ws11 output $game_monitor
+workspace $ws11 output primary
 
 # assign [class="steam_app_.*"] $ws11
 # assign [class="cs2"] $ws11
