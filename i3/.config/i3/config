@@ -35,6 +35,7 @@ exec_always --no-startup-id feh --bg-fill /usr/share/backgrounds/speed.png
 # ── focused window fullscreen
 # ── focused window kill
 # ── reload the configuration file
+# ── rename workspace
 # ── restart i3 (preserve session)
 # ── Sleep system
 # ── Launch shutdown/reboot menu
@@ -47,6 +48,7 @@ bindsym $mod+d exec "rofi -show drun"
 bindsym $mod+f fullscreen toggle
 bindsym $mod+q kill
 bindsym $mod+r reload
+bindsym $mod+n exec --no-startup-id ~/.config/i3/scripts/rename-workspace.sh
 bindsym $mod+Shift+r restart
 bindsym $mod+s exec --no-startup-id systemctl suspend
 bindsym $mod+shift+s exec --no-startup-id ~/.config/i3/scripts/power-menu.sh
@@ -97,17 +99,19 @@ bindsym $mod+Shift+9 move container to workspace number $ws9
 bindsym $mod+Shift+0 move container to workspace number $ws10
 bindsym $mod+Shift+g move container to workspace number $ws11
 
+# ── Workspace Specific Apps ───────────────────────────────────────────────────────────────────────
+# ── Game Worskapce always opens on primary display
+# ── Matches any Steam app ID (e.g., steam_app_730, steam_app_570, etc.)
+# ── Hardcoded cs2 to open in game workspace because general steam_app no worky
+# ── Open Slack in Home workspace
+workspace $ws11 output primary
+for_window [class="^steam_app_"] move to workspace $ws11
+assign [class="(?i)cs2"] $ws11
+for_window [class="slack"] move to workspace $ws1
 
 
 # Temporary line to show where I'm at.
-workspace $ws11 output primary
 
-# Matches any Steam app ID (e.g., steam_app_730, steam_app_570, etc.)
-for_window [class="^steam_app_"] move to workspace $ws11
-# Hardcoded for cs2 cause no worky
-assign [class="(?i)cs2"] $ws11
-
-bindsym $mod+n exec --no-startup-id ~/.config/i3/scripts/rename-workspace.sh
 
 # The combination of xss-lock, nm-applet and pactl is a popular choice, so
 # they are included here as an example. Modify as you see fit.
