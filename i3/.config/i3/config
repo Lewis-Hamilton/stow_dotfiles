@@ -102,21 +102,10 @@ bindsym $mod+Shift+g move container to workspace number $ws11
 # Temporary line to show where I'm at.
 workspace $ws11 output primary
 
-# assign [class="steam_app_.*"] $ws11
-# assign [class="cs2"] $ws11
-# assign [class="gamescope"] $ws11
-# assign [class="Steam"] $ws11
-
-# for_window [class="cs2"] move to workspace $ws11
-# for_window [class="steam_app_.*"] move to workspace $ws11
-# for_window [class="gamescope"] move to workspace $ws11
-
-
-# Catch the game using multiple identifiers to beat the race condition
-for_window [class="cs2"] move to workspace $ws11
-for_window [instance="cs2"] move to workspace $ws11
-for_window [title="Counter-Strike 2"] move to workspace $ws11
-for_window [class="steam_app_730"] move to workspace $ws11
+# Matches any Steam app ID (e.g., steam_app_730, steam_app_570, etc.)
+for_window [class="^steam_app_"] move to workspace $ws11
+# Hardcoded for cs2 cause no worky
+assign [class="(?i)cs2"] $ws11
 
 bindsym $mod+n exec --no-startup-id ~/.config/i3/scripts/rename-workspace.sh
 
