@@ -16,6 +16,10 @@ failed_output() {
     echo -e $MY_RED$1$DEFAULT
 }
 
+warning_output() {
+    echo -e $MY_YELLOW$1$DEFAULT
+}
+
 echo "==> Starting Setup"
 echo "==> Checking Distro"
 
@@ -32,6 +36,17 @@ if [ -f /etc/os-release ]; then
 else
     failed_output "Error: Failed to detect Linux distribution"
     exit 1
+fi
+
+echo "==> Checking DNF Packages"
+
+echo "==> Checking Flatpak Packages"
+
+echo "==> Checking Font"
+if fc-list : family style | grep -qi "JetBrainsMono.*SemiBold"; then
+    success_output "Verified font is installed"    
+else
+    warning_output "JetBrainsMono Nerd Font Mono-SemiBold is not installed"
 fi
 
 echo "==> Setup complete!"
