@@ -22,8 +22,16 @@ warning_output() {
     echo -e $MY_YELLOW$1$DEFAULT
 }
 
-echo "==> Starting Setup"
-echo "==> Checking Distro"
+echo "── Starting Setup ──────────────────────────────────────────────────────────────────────────────────"
+
+sudo -v
+
+while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+SUDO_KP_PID=$!
+
+trap 'kill $SUDO_KP_PID 2>/dev/null || true' EXIT
+
+echo "── Checking Distro ───────────────────────────────────────────────────────────────────── Step 1/4 ──"
 
 if [ -f /etc/os-release ]; then
     . /etc/os-release
@@ -40,7 +48,7 @@ else
     exit 1
 fi
 
-echo "==> Checking Font"
+echo "── Checking Font ─────────────────────────────────────────────────────────────────────── Step 2/4 ──"
 
 if fc-list : family style | grep -qi "JetBrainsMono.*SemiBold"; then
     success_output "Verified font is installed"    
@@ -57,8 +65,18 @@ else
         fi
 fi
 
-echo "==> Checking DNF Packages"
+echo "── Checking DNF Packages ───────────────────────────────────────────────────────────── Step 3/4 ──"
+echo "── 3.1/3.? ────────────────────────────────────────────────────────── Updating installed packages ──"
+if sudo dnf upgrade --refresh -y; then
+    success_output "Successfully udpated existing packages"
+else
+    failed_output "Error: Failed to update existing packages"
+    exit 1
+fi
 
-echo "==> Checking Flatpak Packages"
+echo "── 3.2/3.? ─────────────────────────────────────────────────────────── Check for missing packages ──"
 
-echo "==> Setup complete!"
+
+echo "── Checking Flatpak Packages ─────────────────────────────────────────────────────────── Step 4/4 ──"
+
+echo "── Setup complete! ─────────────────────────────────────────────────────────────────────────────────"
