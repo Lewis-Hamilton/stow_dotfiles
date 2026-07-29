@@ -7,19 +7,21 @@ MY_ORANGE='\033[38;2;238;103;72m'
 MY_YELLOW='\033[38;2;255;216;94m'
 MY_GREEN='\033[38;2;82;238;163m'
 DEFAULT='\033[0m'
-FONT_DIR="~/.local/share/fonts"
+FONT_DIR=~/.local/share/fonts
 FONT_URL="https://raw.githubusercontent.com/ryanoasis/nerd-fonts/master/patched-fonts/JetBrainsMono/Ligatures/SemiBold/JetBrainsMonoNerdFont-SemiBold.ttf"
+PACKAGES_FILE=~/stow_dotfiles/my_os/dnf_packages.txt
+MISSING_PACKAGES=()
 
 success_output() {
-    echo -e $MY_GREEN$1$DEFAULT
+    echo -e "$MY_GREEN:) $1$DEFAULT"
 }
 
 failed_output() {
-    echo -e $MY_RED$1$DEFAULT
+    echo -e "${MY_RED}Error: $1$DEFAULT"
 }
 
 warning_output() {
-    echo -e $MY_YELLOW$1$DEFAULT
+    echo -e "$MY_YELLOW:($1$DEFAULT"
 }
 
 echo "── Starting Setup ──────────────────────────────────────────────────────────────────────────────────"
@@ -39,12 +41,12 @@ if [ -f /etc/os-release ]; then
     if [[ "$DISTRO" = "fedora" ]]; then
         success_output "Verified this machine is running Fedora"
     else
-        failed_output "Error: This machine is not running Fedora"
+        failed_output "This machine is not running Fedora"
         echo "This setup is specific to Fedora."
         exit 1
     fi
 else
-    failed_output "Error: Failed to detect Linux distribution"
+    failed_output "Failed to detect Linux distribution"
     exit 1
 fi
 
@@ -55,27 +57,40 @@ if fc-list : family style | grep -qi "JetBrainsMono.*SemiBold"; then
 else
     warning_output "JetBrainsMono Nerd Font Mono-SemiBold is not installed"
     echo "==> Installing Font"
+    exit 1
     
     if mkdir -p "$FONT_DIR" && \
         curl -fLo "$FONT_DIR/$FONT_NAME" "$RAW_URL" && \
         fc-cache -f "$FONT_DIR"; then
             success_output "Successfully installed font"
         else
-            failed_output "Error: Failed to install Font"
+            failed_output "Failed to install Font"
         fi
 fi
 
-echo "── Checking DNF Packages ───────────────────────────────────────────────────────────── Step 3/4 ──"
+echo "── Checking DNF Packages ─────────────────────────────────────────────────────────────── Step 3/4 ──"
 echo "── 3.1/3.? ────────────────────────────────────────────────────────── Updating installed packages ──"
+
 if sudo dnf upgrade --refresh -y; then
-    success_output "Successfully udpated existing packages"
+    success_output "Successfully updated existing packages"
 else
-    failed_output "Error: Failed to update existing packages"
+    failed_output "Failed to update existing packages"
     exit 1
 fi
 
 echo "── 3.2/3.? ─────────────────────────────────────────────────────────── Check for missing packages ──"
 
+while IFS= read -r pkg || [[ -n "$pkg" ]]; do
+    pkg=$(echo "$pkg" | sed -e 's/#.*//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+    [[ -z "$pkg" ]] && continue
+
+    if dnf list --installed "$pkg" &>/dev/null; then
+        success_output "$pkg is installed"
+    else
+        warning_output "$pkg not installed"
+        MISSING_PACKAGES+=("$pkg")
+    fi
+done < "$PACKAGES_FILE"
 
 echo "── Checking Flatpak Packages ─────────────────────────────────────────────────────────── Step 4/4 ──"
 
