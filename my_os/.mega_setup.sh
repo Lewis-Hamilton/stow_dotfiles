@@ -11,6 +11,35 @@ FONT_DIR=~/.local/share/fonts
 FONT_URL="https://raw.githubusercontent.com/ryanoasis/nerd-fonts/master/patched-fonts/JetBrainsMono/Ligatures/SemiBold/JetBrainsMonoNerdFont-SemiBold.ttf"
 PACKAGES_FILE=~/stow_dotfiles/my_os/dnf_packages.txt
 MISSING_PACKAGES=()
+SKIP_UPGRADE=false
+
+usage() {
+    cat <<EOF
+Usage: ${0##*/} [options]
+
+Options:
+  -s, --skip-upgrade    Skip the 'dnf upgrade --refresh' step
+  -h, --help            Show this help and exit
+EOF
+}
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -s|--skip-upgrade)
+            SKIP_UPGRADE=true
+            shift
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1" >&2
+            usage >&2
+            exit 1
+            ;;
+    esac
+done
 
 success_output() {
     echo -e "$MY_GREEN:) $1$DEFAULT"
@@ -71,7 +100,9 @@ fi
 echo "── Checking DNF Packages ─────────────────────────────────────────────────────────────── Step 3/4 ──"
 echo "── 3.1/3.? ────────────────────────────────────────────────────────── Updating installed packages ──"
 
-if sudo dnf upgrade --refresh -y; then
+if [[ "$SKIP_UPGRADE" == true ]]; then
+    warning_output "Skipping package update (--skip-upgrade)"
+elif sudo dnf upgrade --refresh -y; then
     success_output "Successfully updated existing packages"
 else
     failed_output "Failed to update existing packages"
