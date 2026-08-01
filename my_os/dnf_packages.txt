@@ -1,1 +1,8 @@
 i3
+i3blocks
+rofi
+flatpak
+syncthing
+feh
+lm_sensors
+stow
