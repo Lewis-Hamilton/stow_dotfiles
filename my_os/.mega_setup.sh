@@ -50,7 +50,7 @@ failed_output() {
 }
 
 warning_output() {
-    echo -e "$MY_YELLOW:($1$DEFAULT"
+    echo -e "$MY_YELLOW:( $1$DEFAULT"
 }
 
 echo "── Starting Setup ──────────────────────────────────────────────────────────────────────────────────"
@@ -86,6 +86,7 @@ if fc-list : family style | grep -qi "JetBrainsMono.*SemiBold"; then
 else
     warning_output "JetBrainsMono Nerd Font Mono-SemiBold is not installed"
     echo "==> Installing Font"
+    ## This fails here intermittently but idk why
     exit 1
     
     if mkdir -p "$FONT_DIR" && \
@@ -116,9 +117,9 @@ while IFS= read -r pkg || [[ -n "$pkg" ]]; do
     [[ -z "$pkg" ]] && continue
 
     if dnf list --installed "$pkg" &>/dev/null; then
-        success_output "$pkg is installed"
+        success_output "Verified install - $pkg"
     else
-        warning_output "$pkg not installed"
+        warning_output "── Not installed - $pkg"
         MISSING_PACKAGES+=("$pkg")
     fi
 done < "$PACKAGES_FILE"
