@@ -7,9 +7,12 @@ MY_ORANGE='\033[38;2;238;103;72m'
 MY_YELLOW='\033[38;2;255;216;94m'
 MY_GREEN='\033[38;2;82;238;163m'
 DEFAULT='\033[0m'
-FONT_DIR=~/.local/share/fonts
-FONT_URL="https://raw.githubusercontent.com/ryanoasis/nerd-fonts/master/patched-fonts/JetBrainsMono/Ligatures/SemiBold/JetBrainsMonoNerdFont-SemiBold.ttf"
-PACKAGES_FILE=~/stow_dotfiles/my_os/dnf_packages.txt
+FONT_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/fonts"
+FONT_NAME="JetBrainsMonoNerdFontMono-SemiBold.ttf"
+FONT_URL="https://raw.githubusercontent.com/ryanoasis/nerd-fonts/master/patched-fonts/JetBrainsMono/Ligatures/$FONT_NAME"
+# Resolve through the stow symlink so this works from the repo or from ~
+SCRIPT_DIR=$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")
+PACKAGES_FILE="$SCRIPT_DIR/dnf_packages.txt"
 MISSING_PACKAGES=()
 SKIP_UPGRADE=false
 
@@ -55,6 +58,12 @@ warning_output() {
 
 echo "── Starting Setup ──────────────────────────────────────────────────────────────────────────────────"
 
+if [[ $EUID -eq 0 ]]; then
+    # Running as sudo breaks the file paths
+    failed_output "Do not run this script as root or with sudo"
+    exit 1
+fi
+
 sudo -v
 
 while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
@@ -81,20 +90,21 @@ fi
 
 echo "── Checking Font ─────────────────────────────────────────────────────────────────────── Step 2/4 ──"
 
-if fc-list : family style | grep -qi "JetBrainsMono.*SemiBold"; then
-    success_output "Verified font is installed"    
+FONT_LIST=$(fc-list : family style)
+
+if grep -qi "JetBrainsMono.*SemiBold" <<< "$FONT_LIST"; then
+    success_output "Verified font is installed"
 else
     warning_output "JetBrainsMono Nerd Font Mono-SemiBold is not installed"
     echo "==> Installing Font"
-    ## This fails here intermittently but idk why
-    exit 1
-    
+
     if mkdir -p "$FONT_DIR" && \
-        curl -fLo "$FONT_DIR/$FONT_NAME" "$RAW_URL" && \
+        curl -fLo "$FONT_DIR/$FONT_NAME" "$FONT_URL" && \
         fc-cache -f "$FONT_DIR"; then
             success_output "Successfully installed font"
         else
             failed_output "Failed to install Font"
+            exit 1
         fi
 fi
 
