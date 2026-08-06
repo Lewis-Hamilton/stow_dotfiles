@@ -6,3 +6,5 @@ syncthing
 feh
 lm_sensors
 stow
+flameshot
+brightnessctl
