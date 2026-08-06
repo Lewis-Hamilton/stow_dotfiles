@@ -1,10 +1,53 @@
+# Packages required by these dotfiles.
+#
+# Baseline: Fedora "Custom Operating System" netinstall (@core only) -- i.e. a
+# minimal system with no X server, no audio stack and no fonts. Anything that
+# arrives as a dependency of a package already listed here is left out.
+
+# ── Graphical session ──────────────────────────────────────────────────────
+xorg-x11-server-Xorg
 i3
 i3blocks
 rofi
-flatpak
+
+# ── Session startup (i3 config: exec / exec_always) ────────────────────────
+dex-autostart
+mate-polkit
+network-manager-applet
+light-locker
 syncthing
+
+# ── Display / compositing ──────────────────────────────────────────────────
+picom
+xrandr
+autorandr
+xmodmap
 feh
+
+# ── Audio ──────────────────────────────────────────────────────────────────
+pipewire
+wireplumber
+pipewire-pulseaudio
+pulseaudio-utils
+
+# ── Terminal / fonts ───────────────────────────────────────────────────────
+rxvt-unicode
+adwaita-mono-fonts
+
+# ── Notifications ──────────────────────────────────────────────────────────
+dunst
+dmenu
+xdg-utils
+papirus-icon-theme
+
+# ── i3blocks scripts ───────────────────────────────────────────────────────
 lm_sensors
-stow
-flameshot
 brightnessctl
+jq
+
+# ── Shell / CLI ────────────────────────────────────────────────────────────
+git-core
+vim-enhanced
+flameshot
+flatpak
+stow
