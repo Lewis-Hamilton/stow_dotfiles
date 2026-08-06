@@ -110,7 +110,7 @@ else
     exit 1
 fi
 
-echo "── 3.2/3.? ─────────────────────────────────────────────────────────── Check for missing packages ──"
+echo "── 3.2/3.? ──────────────────────────────────────────────────────── Checking for missing packages ──"
 
 while IFS= read -r pkg || [[ -n "$pkg" ]]; do
     pkg=$(echo "$pkg" | sed -e 's/#.*//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
