@@ -1,0 +1,10 @@
+# Flatpak applications to install, one per line.
+#
+# First field is the application ID
+# Anything after it is an optional display name
+# Falls back to the ID when left off.
+#
+
+# ── App List ──────────────────────────────────────────────────────
+
+com.vscodium.codium    VSCodium

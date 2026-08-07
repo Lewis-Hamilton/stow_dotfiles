@@ -13,7 +13,9 @@ FONT_URL="https://raw.githubusercontent.com/ryanoasis/nerd-fonts/master/patched-
 # Resolve through the stow symlink so this works from the repo or from ~
 SCRIPT_DIR=$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")
 PACKAGES_FILE="$SCRIPT_DIR/dnf_packages.txt"
+FLATPAK_FILE="$SCRIPT_DIR/flatpak_packages.txt"
 MISSING_PACKAGES=()
+MISSING_FLATPAKS=()
 SKIP_UPGRADE=false
 
 usage() {
@@ -137,7 +139,51 @@ done < "$PACKAGES_FILE"
 echo "── Checking DNF Packages - 3.3/3.3 ────────────────────────────────── Installing missing packages ──"
 
 echo "── Checking Flatpak Packages ─────────────────────────────────────────────────────────── Step 4/5 ──"
+echo "── Checking Flatpak Packages - 4.1/4.3 ───────────────────────────────── Verifying flathub remote ──"
 
+# Fedora only preconfigures its own remote, so anything from flathub fails to
+# install without this. --if-not-exists makes it a no-op on later runs.
+if sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo; then
+    success_output "Verified flathub remote is configured"
+else
+    failed_output "Failed to add flathub remote"
+    exit 1
+fi
+
+echo "── Checking Flatpak Packages - 4.2/4.3 ────────────────────────────── Updating installed flatpaks ──"
+
+# Split by scope on purpose: a --system update run as a normal user blocks on a
+# polkit prompt, so that half goes through the already-cached sudo instead.
+if [[ "$SKIP_UPGRADE" == true ]]; then
+    warning_output "Skipping flatpak update (--skip-upgrade)"
+elif sudo flatpak update -y --system && flatpak update -y --user; then
+    success_output "Successfully updated existing flatpaks"
+else
+    failed_output "Failed to update existing flatpaks"
+    exit 1
+fi
+
+echo "── Checking Flatpak Packages - 4.3/4.3 ──────────────────────────── Checking for missing flatpaks ──"
+
+while IFS= read -r line || [[ -n "$line" ]]; do
+    line=$(echo "$line" | sed -e 's/#.*//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+    [[ -z "$line" ]] && continue
+
+    # "<app id> <display name>" - app ids never contain spaces, so split on the
+    # first one and keep the rest as the name. The name is optional.
+    app=${line%%[[:space:]]*}
+    name=${line#"$app"}
+    name=$(echo "$name" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+    [[ -z "$name" ]] && name="$app"
+
+    # flatpak info looks in both the system and user installations
+    if flatpak info "$app" &>/dev/null; then
+        success_output "Verified install - $name"
+    else
+        warning_output "── Not installed - $name"
+        MISSING_FLATPAKS+=("$app")
+    fi
+done < "$FLATPAK_FILE"
 
 echo "── Checking Display Manager ──────────────────────────────────────────────────────────── Step 5/5 ──"
 echo "── Checking Display Manager - 5.1/5.2 ─────────────────────────────────── Checking Lightdm Status ──"
