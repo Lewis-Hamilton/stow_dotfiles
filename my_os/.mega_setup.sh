@@ -71,7 +71,7 @@ SUDO_KP_PID=$!
 
 trap 'kill $SUDO_KP_PID 2>/dev/null || true' EXIT
 
-echo "── Checking Distro ───────────────────────────────────────────────────────────────────── Step 1/4 ──"
+echo "── Checking Distro ───────────────────────────────────────────────────────────────────── Step 1/5 ──"
 
 if [ -f /etc/os-release ]; then
     . /etc/os-release
@@ -88,7 +88,7 @@ else
     exit 1
 fi
 
-echo "── Checking Font ─────────────────────────────────────────────────────────────────────── Step 2/4 ──"
+echo "── Checking Font ─────────────────────────────────────────────────────────────────────── Step 2/5 ──"
 
 FONT_LIST=$(fc-list : family style)
 
@@ -108,8 +108,8 @@ else
         fi
 fi
 
-echo "── Checking DNF Packages ─────────────────────────────────────────────────────────────── Step 3/4 ──"
-echo "── 3.1/3.? ────────────────────────────────────────────────────────── Updating installed packages ──"
+echo "── Checking DNF Packages ─────────────────────────────────────────────────────────────── Step 3/5 ──"
+echo "── Checking DNF Packages - 3.1/3.3 ────────────────────────────────── Updating installed packages ──"
 
 if [[ "$SKIP_UPGRADE" == true ]]; then
     warning_output "Skipping package update (--skip-upgrade)"
@@ -120,7 +120,7 @@ else
     exit 1
 fi
 
-echo "── 3.2/3.? ──────────────────────────────────────────────────────── Checking for missing packages ──"
+echo "── Checking DNF Packages - 3.2/3.3 ──────────────────────────────── Checking for missing packages ──"
 
 while IFS= read -r pkg || [[ -n "$pkg" ]]; do
     pkg=$(echo "$pkg" | sed -e 's/#.*//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
@@ -134,6 +134,52 @@ while IFS= read -r pkg || [[ -n "$pkg" ]]; do
     fi
 done < "$PACKAGES_FILE"
 
-echo "── Checking Flatpak Packages ─────────────────────────────────────────────────────────── Step 4/4 ──"
+echo "── Checking DNF Packages - 3.3/3.3 ────────────────────────────────── Installing missing packages ──"
+
+echo "── Checking Flatpak Packages ─────────────────────────────────────────────────────────── Step 4/5 ──"
+
+
+echo "── Checking Display Manager ──────────────────────────────────────────────────────────── Step 5/5 ──"
+echo "── Checking Display Manager - 5.1/5.2 ─────────────────────────────────── Checking Lightdm Status ──"
+
+
+# lightdm comes in as a hard dependency of light-locker, but ships disabled.
+# is-enabled prints nothing and fails when the unit does not exist, which is
+# the case until the packages above are actually installed.
+LIGHTDM_STATE=$(systemctl is-enabled lightdm.service 2>/dev/null || true)
+
+if [[ "$LIGHTDM_STATE" == "masked" ]]; then
+    failed_output "lightdm is masked"
+    echo "Unmask it with 'sudo systemctl unmask lightdm.service' and re-run."
+    exit 1
+else
+    if [[ "$LIGHTDM_STATE" == "enabled" ]]; then
+        success_output "Verified lightdm is enabled"
+    else
+        echo "==> Enabling lightdm (currently $LIGHTDM_STATE)"
+        if sudo systemctl enable lightdm.service; then
+            success_output "Successfully enabled lightdm"
+        else
+            failed_output "Failed to enable lightdm"
+            exit 1
+        fi
+    fi
+
+echo "── Checking Display Manager - 5.2/5.2 ────────────────────────────────────── Checking Boot Target ──"
+
+    # Enabling lightdm alone is inert: the display manager is only started as
+    # part of graphical.target, and a minimal install boots to multi-user.
+    if [[ "$(systemctl get-default)" == "graphical.target" ]]; then
+        success_output "Verified default boot target is graphical"
+    else
+        echo "==> Setting default boot target to graphical"
+        if sudo systemctl set-default graphical.target; then
+            success_output "Successfully set default boot target to graphical"
+        else
+            failed_output "Failed to set default boot target"
+            exit 1
+        fi
+    fi
+fi
 
 echo "── Setup complete! ─────────────────────────────────────────────────────────────────────────────────"
