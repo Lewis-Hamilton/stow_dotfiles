@@ -7,4 +7,6 @@
 
 # ── App List ──────────────────────────────────────────────────────
 
-com.vscodium.codium    VSCodium
+com.vscodium.codium              VSCodium
+md.obsidian.Obsidian             Obsidian
+org.localsend.localsend_app     LocalSend
