@@ -10,3 +10,4 @@
 com.vscodium.codium              VSCodium
 md.obsidian.Obsidian             Obsidian
 org.localsend.localsend_app     LocalSend
+org.gimp.GIMP                        Gimp

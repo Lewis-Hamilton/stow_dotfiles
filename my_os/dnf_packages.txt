@@ -51,3 +51,4 @@ vim-enhanced
 flameshot
 flatpak
 stow
+Thunar
