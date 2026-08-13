@@ -13,6 +13,7 @@ rofi
 # ── Session startup (i3 config: exec / exec_always) ────────────────────────
 dex-autostart
 mate-polkit
+gnome-keyring-pam
 network-manager-applet
 light-locker
 syncthing
