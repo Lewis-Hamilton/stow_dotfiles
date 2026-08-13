@@ -138,8 +138,17 @@ done < "$PACKAGES_FILE"
 
 echo "── Checking DNF Packages - 3.3/3.3 ────────────────────────────────── Installing missing packages ──"
 
+if [[ ${#MISSING_PACKAGES[@]} -eq 0 ]]; then
+    success_output "No missing packages to install"
+elif sudo dnf install -y "${MISSING_PACKAGES[@]}"; then
+    success_output "Successfully installed ${#MISSING_PACKAGES[@]} missing packages"
+else
+    failed_output "Failed to install missing packages"
+    exit 1
+fi
+
 echo "── Checking Flatpak Packages ─────────────────────────────────────────────────────────── Step 4/5 ──"
-echo "── Checking Flatpak Packages - 4.1/4.3 ───────────────────────────────── Verifying flathub remote ──"
+echo "── Checking Flatpak Packages - 4.1/4.4 ───────────────────────────────── Verifying flathub remote ──"
 
 # Fedora only preconfigures its own remote, so anything from flathub fails to
 # install without this. --if-not-exists makes it a no-op on later runs.
@@ -150,7 +159,7 @@ else
     exit 1
 fi
 
-echo "── Checking Flatpak Packages - 4.2/4.3 ────────────────────────────── Updating installed flatpaks ──"
+echo "── Checking Flatpak Packages - 4.2/4.4 ────────────────────────────── Updating installed flatpaks ──"
 
 # Split by scope on purpose: a --system update run as a normal user blocks on a
 # polkit prompt, so that half goes through the already-cached sudo instead.
@@ -163,7 +172,7 @@ else
     exit 1
 fi
 
-echo "── Checking Flatpak Packages - 4.3/4.3 ──────────────────────────── Checking for missing flatpaks ──"
+echo "── Checking Flatpak Packages - 4.3/4.4 ──────────────────────────── Checking for missing flatpaks ──"
 
 while IFS= read -r line || [[ -n "$line" ]]; do
     line=$(echo "$line" | sed -e 's/#.*//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
@@ -184,6 +193,17 @@ while IFS= read -r line || [[ -n "$line" ]]; do
         MISSING_FLATPAKS+=("$app")
     fi
 done < "$FLATPAK_FILE"
+
+echo "── Checking Flatpak Packages - 4.4/4.4 ────────────────────────────── Installing missing flatpaks ──"
+
+if [[ ${#MISSING_FLATPAKS[@]} -eq 0 ]]; then
+    success_output "No missing flatpaks to install"
+elif sudo flatpak install -y --system flathub "${MISSING_FLATPAKS[@]}"; then
+    success_output "Successfully installed ${#MISSING_FLATPAKS[@]} missing flatpaks"
+else
+    failed_output "Failed to install missing flatpaks"
+    exit 1
+fi
 
 echo "── Checking Display Manager ──────────────────────────────────────────────────────────── Step 5/5 ──"
 echo "── Checking Display Manager - 5.1/5.2 ─────────────────────────────────── Checking Lightdm Status ──"
