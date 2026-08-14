@@ -236,8 +236,11 @@ client.placeholder      #000000 #0C0C0C #FFFFFF #000000   #0C0C0C
 
 client.background       #FFFFFF
 
+# these seem to be global window settings, can probably move to formatted section. 
 # Added this to hide title bar
 for_window [class="^.*"] border pixel 0
+# prevent floading modals from slowly moving down the screen, hilarious
+for_window [floating] move position center
 # default_border pixel 1
 # default_floating_border pixel 1
 
