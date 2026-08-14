@@ -100,10 +100,12 @@ bindsym $mod+Shift+0 move container to workspace number $ws10
 bindsym $mod+Shift+g move container to workspace number $ws11
 
 # ── Workspace Specific Apps ───────────────────────────────────────────────────────────────────────
-# ── Game Worskapce always opens on primary display
+# ── Home Workspace has to be added here so Game Workspace doesn't open on bootup
+# ── Game Workspace always opens on primary display
 # ── Matches any Steam app ID (e.g., steam_app_730, steam_app_570, etc.)
 # ── Hardcoded cs2 to open in game workspace because general steam_app no worky
 # ── Open Slack in Home workspace
+workspace $ws1 output primary
 workspace $ws11 output primary
 for_window [class="^steam_app_"] move to workspace $ws11
 assign [class="(?i)cs2"] $ws11
