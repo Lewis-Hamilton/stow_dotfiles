@@ -90,28 +90,8 @@ else
     exit 1
 fi
 
-echo "── Checking Font ─────────────────────────────────────────────────────────────────────── Step 2/5 ──"
-
-FONT_LIST=$(fc-list : family style)
-
-if grep -qi "JetBrainsMono.*SemiBold" <<< "$FONT_LIST"; then
-    success_output "Verified font is installed"
-else
-    warning_output "JetBrainsMono Nerd Font Mono-SemiBold is not installed"
-    echo "==> Installing Font"
-
-    if mkdir -p "$FONT_DIR" && \
-        curl -fLo "$FONT_DIR/$FONT_NAME" "$FONT_URL" && \
-        fc-cache -f "$FONT_DIR"; then
-            success_output "Successfully installed font"
-        else
-            failed_output "Failed to install Font"
-            exit 1
-        fi
-fi
-
-echo "── Checking DNF Packages ─────────────────────────────────────────────────────────────── Step 3/5 ──"
-echo "── Checking DNF Packages - 3.1/3.3 ────────────────────────────────── Updating installed packages ──"
+echo "── Checking DNF Packages ─────────────────────────────────────────────────────────────── Step 2/5 ──"
+echo "── Checking DNF Packages - 2.1/2.3 ────────────────────────────────── Updating installed packages ──"
 
 if [[ "$SKIP_UPGRADE" == true ]]; then
     warning_output "Skipping package update (--skip-upgrade)"
@@ -122,7 +102,7 @@ else
     exit 1
 fi
 
-echo "── Checking DNF Packages - 3.2/3.3 ──────────────────────────────── Checking for missing packages ──"
+echo "── Checking DNF Packages - 2.2/2.3 ──────────────────────────────── Checking for missing packages ──"
 
 while IFS= read -r pkg || [[ -n "$pkg" ]]; do
     pkg=$(echo "$pkg" | sed -e 's/#.*//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
@@ -136,7 +116,7 @@ while IFS= read -r pkg || [[ -n "$pkg" ]]; do
     fi
 done < "$PACKAGES_FILE"
 
-echo "── Checking DNF Packages - 3.3/3.3 ────────────────────────────────── Installing missing packages ──"
+echo "── Checking DNF Packages - 2.3/2.3 ────────────────────────────────── Installing missing packages ──"
 
 if [[ ${#MISSING_PACKAGES[@]} -eq 0 ]]; then
     success_output "No missing packages to install"
@@ -147,8 +127,8 @@ else
     exit 1
 fi
 
-echo "── Checking Flatpak Packages ─────────────────────────────────────────────────────────── Step 4/5 ──"
-echo "── Checking Flatpak Packages - 4.1/4.4 ───────────────────────────────── Verifying flathub remote ──"
+echo "── Checking Flatpak Packages ─────────────────────────────────────────────────────────── Step 3/5 ──"
+echo "── Checking Flatpak Packages - 3.1/3.4 ───────────────────────────────── Verifying flathub remote ──"
 
 # Fedora only preconfigures its own remote, so anything from flathub fails to
 # install without this. --if-not-exists makes it a no-op on later runs.
@@ -159,7 +139,7 @@ else
     exit 1
 fi
 
-echo "── Checking Flatpak Packages - 4.2/4.4 ────────────────────────────── Updating installed flatpaks ──"
+echo "── Checking Flatpak Packages - 3.2/3.4 ────────────────────────────── Updating installed flatpaks ──"
 
 # Split by scope on purpose: a --system update run as a normal user blocks on a
 # polkit prompt, so that half goes through the already-cached sudo instead.
@@ -172,7 +152,7 @@ else
     exit 1
 fi
 
-echo "── Checking Flatpak Packages - 4.3/4.4 ──────────────────────────── Checking for missing flatpaks ──"
+echo "── Checking Flatpak Packages - 3.3/3.4 ──────────────────────────── Checking for missing flatpaks ──"
 
 while IFS= read -r line || [[ -n "$line" ]]; do
     line=$(echo "$line" | sed -e 's/#.*//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
@@ -194,7 +174,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     fi
 done < "$FLATPAK_FILE"
 
-echo "── Checking Flatpak Packages - 4.4/4.4 ────────────────────────────── Installing missing flatpaks ──"
+echo "── Checking Flatpak Packages - 3.4/3.4 ────────────────────────────── Installing missing flatpaks ──"
 
 if [[ ${#MISSING_FLATPAKS[@]} -eq 0 ]]; then
     success_output "No missing flatpaks to install"
@@ -205,8 +185,8 @@ else
     exit 1
 fi
 
-echo "── Checking Display Manager ──────────────────────────────────────────────────────────── Step 5/5 ──"
-echo "── Checking Display Manager - 5.1/5.2 ─────────────────────────────────── Checking Lightdm Status ──"
+echo "── Checking Display Manager ──────────────────────────────────────────────────────────── Step 4/5 ──"
+echo "── Checking Display Manager - 4.1/4.2 ─────────────────────────────────── Checking Lightdm Status ──"
 
 
 # lightdm comes in as a hard dependency of light-locker, but ships disabled.
@@ -231,7 +211,7 @@ else
         fi
     fi
 
-echo "── Checking Display Manager - 5.2/5.2 ────────────────────────────────────── Checking Boot Target ──"
+echo "── Checking Display Manager - 4.2/4.2 ────────────────────────────────────── Checking Boot Target ──"
 
     # Enabling lightdm alone is inert: the display manager is only started as
     # part of graphical.target, and a minimal install boots to multi-user.
@@ -246,6 +226,28 @@ echo "── Checking Display Manager - 5.2/5.2 ──────────�
             exit 1
         fi
     fi
+fi
+
+echo "── Checking Font ─────────────────────────────────────────────────────────────────────── Step 5/5 ──"
+
+# Last on purpose: fc-list/fc-cache come from fontconfig, which a minimal
+# install does not ship, so this has to run after the package step above.
+FONT_LIST=$(fc-list : family style)
+
+if grep -qi "JetBrainsMono.*SemiBold" <<< "$FONT_LIST"; then
+    success_output "Verified font is installed"
+else
+    warning_output "JetBrainsMono Nerd Font Mono-SemiBold is not installed"
+    echo "==> Installing Font"
+
+    if mkdir -p "$FONT_DIR" && \
+        curl -fLo "$FONT_DIR/$FONT_NAME" "$FONT_URL" && \
+        fc-cache -f "$FONT_DIR"; then
+            success_output "Successfully installed font"
+        else
+            failed_output "Failed to install Font"
+            exit 1
+        fi
 fi
 
 echo "── Setup complete! ─────────────────────────────────────────────────────────────────────────────────"

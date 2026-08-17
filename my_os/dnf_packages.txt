@@ -34,6 +34,7 @@ pulseaudio-utils
 # ── Terminal / fonts ───────────────────────────────────────────────────────
 rxvt-unicode
 adwaita-mono-fonts
+fontconfig
 
 # ── Notifications ──────────────────────────────────────────────────────────
 dunst
