@@ -14,6 +14,8 @@ FONT_URL="https://raw.githubusercontent.com/ryanoasis/nerd-fonts/master/patched-
 SCRIPT_DIR=$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")
 PACKAGES_FILE="$SCRIPT_DIR/dnf_packages.txt"
 FLATPAK_FILE="$SCRIPT_DIR/flatpak_packages.txt"
+ONEPASS_KEY_URL="https://downloads.1password.com/linux/keys/1password.asc"
+ONEPASS_REPO_FILE="/etc/yum.repos.d/1password.repo"
 MISSING_PACKAGES=()
 MISSING_FLATPAKS=()
 SKIP_UPGRADE=false
@@ -73,7 +75,7 @@ SUDO_KP_PID=$!
 
 trap 'kill $SUDO_KP_PID 2>/dev/null || true' EXIT
 
-echo "── Checking Distro ───────────────────────────────────────────────────────────────────── Step 1/5 ──"
+echo "── Checking Distro ───────────────────────────────────────────────────────────────────── Step 1/6 ──"
 
 if [ -f /etc/os-release ]; then
     . /etc/os-release
@@ -90,8 +92,35 @@ else
     exit 1
 fi
 
-echo "── Checking DNF Packages ─────────────────────────────────────────────────────────────── Step 2/5 ──"
-echo "── Checking DNF Packages - 2.1/2.3 ────────────────────────────────── Updating installed packages ──"
+echo "── Checking Repositories ─────────────────────────────────────────────────────────────── Step 2/6 ──"
+
+if [[ -f "$ONEPASS_REPO_FILE" ]]; then
+    success_output "Verified 1Password repository is configured"
+else
+    warning_output "1Password repository is not configured"
+    echo "==> Adding 1Password repository"
+
+    # $basearch is expanded by dnf, not here, hence the escape.
+    if sudo rpm --import "$ONEPASS_KEY_URL" && \
+        sudo tee "$ONEPASS_REPO_FILE" >/dev/null <<EOF
+[1password]
+name=1Password Stable Channel
+baseurl=https://downloads.1password.com/linux/rpm/stable/\$basearch
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=$ONEPASS_KEY_URL
+EOF
+    then
+        success_output "Successfully added 1Password repository"
+    else
+        failed_output "Failed to add 1Password repository"
+        exit 1
+    fi
+fi
+
+echo "── Checking DNF Packages ─────────────────────────────────────────────────────────────── Step 3/6 ──"
+echo "── Checking DNF Packages - 3.1/3.3 ────────────────────────────────── Updating installed packages ──"
 
 if [[ "$SKIP_UPGRADE" == true ]]; then
     warning_output "Skipping package update (--skip-upgrade)"
@@ -102,7 +131,7 @@ else
     exit 1
 fi
 
-echo "── Checking DNF Packages - 2.2/2.3 ──────────────────────────────── Checking for missing packages ──"
+echo "── Checking DNF Packages - 3.2/3.3 ──────────────────────────────── Checking for missing packages ──"
 
 while IFS= read -r pkg || [[ -n "$pkg" ]]; do
     pkg=$(echo "$pkg" | sed -e 's/#.*//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
@@ -116,7 +145,7 @@ while IFS= read -r pkg || [[ -n "$pkg" ]]; do
     fi
 done < "$PACKAGES_FILE"
 
-echo "── Checking DNF Packages - 2.3/2.3 ────────────────────────────────── Installing missing packages ──"
+echo "── Checking DNF Packages - 3.3/3.3 ────────────────────────────────── Installing missing packages ──"
 
 if [[ ${#MISSING_PACKAGES[@]} -eq 0 ]]; then
     success_output "No missing packages to install"
@@ -127,8 +156,8 @@ else
     exit 1
 fi
 
-echo "── Checking Flatpak Packages ─────────────────────────────────────────────────────────── Step 3/5 ──"
-echo "── Checking Flatpak Packages - 3.1/3.4 ───────────────────────────────── Verifying flathub remote ──"
+echo "── Checking Flatpak Packages ─────────────────────────────────────────────────────────── Step 4/6 ──"
+echo "── Checking Flatpak Packages - 4.1/4.4 ───────────────────────────────── Verifying flathub remote ──"
 
 # Fedora only preconfigures its own remote, so anything from flathub fails to
 # install without this. --if-not-exists makes it a no-op on later runs.
@@ -139,7 +168,7 @@ else
     exit 1
 fi
 
-echo "── Checking Flatpak Packages - 3.2/3.4 ────────────────────────────── Updating installed flatpaks ──"
+echo "── Checking Flatpak Packages - 4.2/4.4 ────────────────────────────── Updating installed flatpaks ──"
 
 # Split by scope on purpose: a --system update run as a normal user blocks on a
 # polkit prompt, so that half goes through the already-cached sudo instead.
@@ -152,7 +181,7 @@ else
     exit 1
 fi
 
-echo "── Checking Flatpak Packages - 3.3/3.4 ──────────────────────────── Checking for missing flatpaks ──"
+echo "── Checking Flatpak Packages - 4.3/4.4 ──────────────────────────── Checking for missing flatpaks ──"
 
 while IFS= read -r line || [[ -n "$line" ]]; do
     line=$(echo "$line" | sed -e 's/#.*//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
@@ -174,7 +203,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     fi
 done < "$FLATPAK_FILE"
 
-echo "── Checking Flatpak Packages - 3.4/3.4 ────────────────────────────── Installing missing flatpaks ──"
+echo "── Checking Flatpak Packages - 4.4/4.4 ────────────────────────────── Installing missing flatpaks ──"
 
 if [[ ${#MISSING_FLATPAKS[@]} -eq 0 ]]; then
     success_output "No missing flatpaks to install"
@@ -185,8 +214,8 @@ else
     exit 1
 fi
 
-echo "── Checking Display Manager ──────────────────────────────────────────────────────────── Step 4/5 ──"
-echo "── Checking Display Manager - 4.1/4.2 ─────────────────────────────────── Checking Lightdm Status ──"
+echo "── Checking Display Manager ──────────────────────────────────────────────────────────── Step 5/6 ──"
+echo "── Checking Display Manager - 5.1/5.2 ─────────────────────────────────── Checking Lightdm Status ──"
 
 
 # lightdm comes in as a hard dependency of light-locker, but ships disabled.
@@ -211,7 +240,7 @@ else
         fi
     fi
 
-echo "── Checking Display Manager - 4.2/4.2 ────────────────────────────────────── Checking Boot Target ──"
+echo "── Checking Display Manager - 5.2/5.2 ────────────────────────────────────── Checking Boot Target ──"
 
     # Enabling lightdm alone is inert: the display manager is only started as
     # part of graphical.target, and a minimal install boots to multi-user.
@@ -228,7 +257,7 @@ echo "── Checking Display Manager - 4.2/4.2 ──────────�
     fi
 fi
 
-echo "── Checking Font ─────────────────────────────────────────────────────────────────────── Step 5/5 ──"
+echo "── Checking Font ─────────────────────────────────────────────────────────────────────── Step 6/6 ──"
 
 FONT_LIST=$(fc-list : family style)
 
