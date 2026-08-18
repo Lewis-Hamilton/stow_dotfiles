@@ -230,8 +230,6 @@ fi
 
 echo "── Checking Font ─────────────────────────────────────────────────────────────────────── Step 5/5 ──"
 
-# Last on purpose: fc-list/fc-cache come from fontconfig, which a minimal
-# install does not ship, so this has to run after the package step above.
 FONT_LIST=$(fc-list : family style)
 
 if grep -qi "JetBrainsMono.*SemiBold" <<< "$FONT_LIST"; then
