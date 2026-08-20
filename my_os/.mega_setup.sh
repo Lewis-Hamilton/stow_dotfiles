@@ -16,6 +16,8 @@ PACKAGES_FILE="$SCRIPT_DIR/dnf_packages.txt"
 FLATPAK_FILE="$SCRIPT_DIR/flatpak_packages.txt"
 ONEPASS_KEY_URL="https://downloads.1password.com/linux/keys/1password.asc"
 ONEPASS_REPO_FILE="/etc/yum.repos.d/1password.repo"
+RPMFUSION_URL="https://mirrors.rpmfusion.org"
+RPMFUSION_REPO="free"
 # Overridable from the environment so an odd machine can be tuned without an edit
 MIN_DISK_GIB=${MIN_DISK_GIB:-25}
 MIN_FREE_GIB=${MIN_FREE_GIB:-10}
@@ -160,6 +162,7 @@ else
 fi
 
 echo "── Checking Repositories ─────────────────────────────────────────────────────────────── Step 3/8 ──"
+echo "── Checking Repositories - 3.1/3.2 ──────────────────────────────── Checking 1Password repository ──"
 
 if [[ -f "$ONEPASS_REPO_FILE" ]]; then
     success_output "Verified 1Password repository is configured"
@@ -182,6 +185,29 @@ EOF
         success_output "Successfully added 1Password repository"
     else
         failed_output "Failed to add 1Password repository"
+        exit 1
+    fi
+fi
+
+echo "── Checking Repositories - 3.2/3.2 ─────────────────────────────── Checking RPM Fusion repository ──"
+
+# vlc-plugins-freeworld comes from rpmfusion-free. The .repo file is shipped by
+# the release package, so ask rpm rather than looking for the file the way the
+# 1Password check above has to.
+RPMFUSION_PKG="rpmfusion-$RPMFUSION_REPO-release"
+
+if rpm -q "$RPMFUSION_PKG" &>/dev/null; then
+    success_output "Verified RPM Fusion $RPMFUSION_REPO repository is configured"
+else
+    warning_output "RPM Fusion $RPMFUSION_REPO repository is not configured"
+    echo "==> Adding RPM Fusion $RPMFUSION_REPO repository"
+
+    # Installed by URL out of necessity: the release package is what carries the
+    # repo definition, so there is no configured repo to pull it from yet.
+    if sudo dnf install -y "$RPMFUSION_URL/$RPMFUSION_REPO/fedora/$RPMFUSION_PKG-$(rpm -E %fedora).noarch.rpm"; then
+        success_output "Successfully added RPM Fusion $RPMFUSION_REPO repository"
+    else
+        failed_output "Failed to add RPM Fusion $RPMFUSION_REPO repository"
         exit 1
     fi
 fi

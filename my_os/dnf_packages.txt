@@ -50,7 +50,6 @@ jq
 # ── Shell / CLI ────────────────────────────────────────────────────────────
 git-core
 vim-enhanced
-flameshot
 flatpak
 stow
 Thunar
@@ -59,3 +58,7 @@ Thunar
 # These shouldn't be installed as flatpaks, can't be sandboxed
 firefox
 1password
+flameshot
+vlc
+# From RPM Fusion free, configured in the repositories step
+vlc-plugins-freeworld
