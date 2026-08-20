@@ -8,6 +8,7 @@ MY_YELLOW='\033[38;2;255;216;94m'
 MY_GREEN='\033[38;2;82;238;163m'
 DEFAULT='\033[0m'
 FONT_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/fonts"
+BOOKMARKS_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/gtk-3.0/bookmarks"
 FONT_NAME="JetBrainsMonoNerdFontMono-SemiBold.ttf"
 FONT_URL="https://raw.githubusercontent.com/ryanoasis/nerd-fonts/master/patched-fonts/JetBrainsMono/Ligatures/$FONT_NAME"
 # Resolve through the stow symlink so this works from the repo or from ~
@@ -371,6 +372,7 @@ else
 fi
 
 echo "── Checking Default Folders ──────────────────────────────────────────────────────────── Step 8/8 ──"
+echo "── Checking Default Folders - 8.1/8.2 ───────────────────────────────────── Checking home folders ──"
 
 for dir in "${DEFAULT_DIRS[@]}"; do
     if [[ -d "$dir" ]]; then
@@ -382,5 +384,23 @@ for dir in "${DEFAULT_DIRS[@]}"; do
         exit 1
     fi
 done
+
+echo "── Checking Default Folders - 8.2/8.2 ───────────────────────────────── Checking Thunar bookmarks ──"
+
+# Thunar rewrites this file so instead of stowing it's generated once here
+if [[ -f "$BOOKMARKS_FILE" ]]; then
+    success_output "Verified Thunar bookmarks exist"
+else
+    warning_output "Thunar bookmarks are not configured"
+    echo "==> Adding Thunar bookmarks"
+
+    if mkdir -p "$(dirname -- "$BOOKMARKS_FILE")" && \
+        printf 'file://%s\n' "${DEFAULT_DIRS[@]}" > "$BOOKMARKS_FILE"; then
+        success_output "Successfully added ${#DEFAULT_DIRS[@]} Thunar bookmarks"
+    else
+        failed_output "Failed to add Thunar bookmarks"
+        exit 1
+    fi
+fi
 
 echo "── Setup complete! ─────────────────────────────────────────────────────────────────────────────────"
