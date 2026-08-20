@@ -19,6 +19,7 @@ ONEPASS_REPO_FILE="/etc/yum.repos.d/1password.repo"
 # Overridable from the environment so an odd machine can be tuned without an edit
 MIN_DISK_GIB=${MIN_DISK_GIB:-25}
 MIN_FREE_GIB=${MIN_FREE_GIB:-10}
+DEFAULT_DIRS=("$HOME/Documents" "$HOME/Code" "$HOME/Pictures" "$HOME/Videos" "$HOME/Downloads")
 MISSING_PACKAGES=()
 MISSING_FLATPAKS=()
 SKIP_UPGRADE=false
@@ -89,7 +90,7 @@ SUDO_KP_PID=$!
 
 trap 'kill $SUDO_KP_PID 2>/dev/null || true' EXIT
 
-echo "── Checking Distro ───────────────────────────────────────────────────────────────────── Step 1/7 ──"
+echo "── Checking Distro ───────────────────────────────────────────────────────────────────── Step 1/8 ──"
 
 if [ -f /etc/os-release ]; then
     . /etc/os-release
@@ -106,7 +107,7 @@ else
     exit 1
 fi
 
-echo "── Checking Storage ──────────────────────────────────────────────────────────────────── Step 2/7 ──"
+echo "── Checking Storage ──────────────────────────────────────────────────────────────────── Step 2/8 ──"
 echo "── Checking Storage - 2.1/2.2 ────────────────────────────────────── Checking filesystem capacity ──"
 
 ROOT_FSTYPE=$(df --output=fstype / | tail -n 1 | tr -d '[:space:]')
@@ -158,7 +159,7 @@ else
     fi
 fi
 
-echo "── Checking Repositories ─────────────────────────────────────────────────────────────── Step 3/7 ──"
+echo "── Checking Repositories ─────────────────────────────────────────────────────────────── Step 3/8 ──"
 
 if [[ -f "$ONEPASS_REPO_FILE" ]]; then
     success_output "Verified 1Password repository is configured"
@@ -185,7 +186,7 @@ EOF
     fi
 fi
 
-echo "── Checking DNF Packages ─────────────────────────────────────────────────────────────── Step 4/7 ──"
+echo "── Checking DNF Packages ─────────────────────────────────────────────────────────────── Step 4/8 ──"
 echo "── Checking DNF Packages - 4.1/4.3 ────────────────────────────────── Updating installed packages ──"
 
 if [[ "$SKIP_UPGRADE" == true ]]; then
@@ -222,7 +223,7 @@ else
     exit 1
 fi
 
-echo "── Checking Flatpak Packages ─────────────────────────────────────────────────────────── Step 5/7 ──"
+echo "── Checking Flatpak Packages ─────────────────────────────────────────────────────────── Step 5/8 ──"
 echo "── Checking Flatpak Packages - 5.1/5.4 ───────────────────────────────── Verifying flathub remote ──"
 
 # Fedora only preconfigures its own remote, so anything from flathub fails to
@@ -280,7 +281,7 @@ else
     exit 1
 fi
 
-echo "── Checking Display Manager ──────────────────────────────────────────────────────────── Step 6/7 ──"
+echo "── Checking Display Manager ──────────────────────────────────────────────────────────── Step 6/8 ──"
 echo "── Checking Display Manager - 6.1/6.2 ─────────────────────────────────── Checking Lightdm Status ──"
 
 
@@ -323,7 +324,7 @@ echo "── Checking Display Manager - 6.2/6.2 ──────────�
     fi
 fi
 
-echo "── Checking Font ─────────────────────────────────────────────────────────────────────── Step 7/7 ──"
+echo "── Checking Font ─────────────────────────────────────────────────────────────────────── Step 7/8 ──"
 
 FONT_LIST=$(fc-list : family style)
 
@@ -342,5 +343,18 @@ else
             exit 1
         fi
 fi
+
+echo "── Checking Default Folders ──────────────────────────────────────────────────────────── Step 8/8 ──"
+
+for dir in "${DEFAULT_DIRS[@]}"; do
+    if [[ -d "$dir" ]]; then
+        success_output "──── Verified folder exists - ${dir/#"$HOME"/\~}"
+    elif mkdir -p "$dir"; then
+        success_output "Successfully created folder - ${dir/#"$HOME"/\~}"
+    else
+        failed_output "Failed to create folder - ${dir/#"$HOME"/\~}"
+        exit 1
+    fi
+done
 
 echo "── Setup complete! ─────────────────────────────────────────────────────────────────────────────────"
