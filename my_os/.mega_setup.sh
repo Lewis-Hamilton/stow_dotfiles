@@ -16,9 +16,13 @@ PACKAGES_FILE="$SCRIPT_DIR/dnf_packages.txt"
 FLATPAK_FILE="$SCRIPT_DIR/flatpak_packages.txt"
 ONEPASS_KEY_URL="https://downloads.1password.com/linux/keys/1password.asc"
 ONEPASS_REPO_FILE="/etc/yum.repos.d/1password.repo"
+# Overridable from the environment so an odd machine can be tuned without an edit
+MIN_DISK_GIB=${MIN_DISK_GIB:-25}
+MIN_FREE_GIB=${MIN_FREE_GIB:-10}
 MISSING_PACKAGES=()
 MISSING_FLATPAKS=()
 SKIP_UPGRADE=false
+SKIP_STORAGE_CHECK=false
 
 usage() {
     cat <<EOF
@@ -26,6 +30,8 @@ Usage: ${0##*/} [options]
 
 Options:
   -s, --skip-upgrade    Skip the 'dnf upgrade --refresh' step
+  -S, --skip-storage-check
+                        Run even if the machine is below the storage minimums
   -h, --help            Show this help and exit
 EOF
 }
@@ -34,6 +40,10 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         -s|--skip-upgrade)
             SKIP_UPGRADE=true
+            shift
+            ;;
+        -S|--skip-storage-check)
+            SKIP_STORAGE_CHECK=true
             shift
             ;;
         -h|--help)
@@ -60,6 +70,10 @@ warning_output() {
     echo -e "$MY_YELLOW:( $1$DEFAULT"
 }
 
+gib() {
+    awk -v bytes="$1" 'BEGIN { printf "%.1f", bytes / (1024 ^ 3) }'
+}
+
 echo "── Starting Setup ──────────────────────────────────────────────────────────────────────────────────"
 
 if [[ $EUID -eq 0 ]]; then
@@ -75,7 +89,7 @@ SUDO_KP_PID=$!
 
 trap 'kill $SUDO_KP_PID 2>/dev/null || true' EXIT
 
-echo "── Checking Distro ───────────────────────────────────────────────────────────────────── Step 1/6 ──"
+echo "── Checking Distro ───────────────────────────────────────────────────────────────────── Step 1/7 ──"
 
 if [ -f /etc/os-release ]; then
     . /etc/os-release
@@ -92,7 +106,59 @@ else
     exit 1
 fi
 
-echo "── Checking Repositories ─────────────────────────────────────────────────────────────── Step 2/6 ──"
+echo "── Checking Storage ──────────────────────────────────────────────────────────────────── Step 2/7 ──"
+echo "── Checking Storage - 2.1/2.2 ────────────────────────────────────── Checking filesystem capacity ──"
+
+ROOT_FSTYPE=$(df --output=fstype / | tail -n 1 | tr -d '[:space:]')
+ROOT_SIZE=$(df -B1 --output=size / | tail -n 1 | tr -d '[:space:]')
+ROOT_AVAIL=$(df -B1 --output=avail / | tail -n 1 | tr -d '[:space:]')
+
+# Total size is a static property of the machine, so it is the one threshold
+# that means the same thing on a first run and on every run after it.
+if [[ "$SKIP_STORAGE_CHECK" == true ]]; then
+    warning_output "Skipping storage check (--skip-storage-check)"
+elif (( ROOT_SIZE < MIN_DISK_GIB * 1024 ** 3 )); then
+    failed_output "Root filesystem is $(gib "$ROOT_SIZE") GiB, less than the $MIN_DISK_GIB GiB minimum"
+    exit 1
+else
+    success_output "Verified root filesystem is $(gib "$ROOT_SIZE") GiB, greater than the $MIN_DISK_GIB GiB minimum"
+
+    if (( ROOT_AVAIL < MIN_FREE_GIB * 1024 ** 3 )); then
+        warning_output "Only $(gib "$ROOT_AVAIL") GiB free, less than the $MIN_FREE_GIB GiB minimum"
+        echo "Safe to ignore if most of the packages below are already installed."
+    else
+        success_output "Verified $(gib "$ROOT_AVAIL") GiB of free space, greater than the $MIN_FREE_GIB GiB minimum"
+    fi
+fi
+
+echo "── Checking Storage - 2.2/2.2 ───────────────────────────────────────── Checking btrfs allocation ──"
+
+if [[ "$SKIP_STORAGE_CHECK" == true ]]; then
+    warning_output "Skipping btrfs allocation check (--skip-storage-check)"
+elif [[ "$ROOT_FSTYPE" != "btrfs" ]]; then
+    success_output "Root filesystem is $ROOT_FSTYPE, no allocation check needed"
+else
+    UNALLOCATED=$(btrfs filesystem usage -b / 2>/dev/null | awk '/Device unallocated:/ {print $3}')
+    META_TOTAL=$(btrfs filesystem df -b / 2>/dev/null | awk -F'[=,]' '/^Metadata/ {print $3}')
+    META_USED=$(btrfs filesystem df -b / 2>/dev/null | awk -F'[=,]' '/^Metadata/ {print $5}')
+
+    if ! [[ "$UNALLOCATED" =~ ^[0-9]+$ && "$META_TOTAL" =~ ^[1-9][0-9]*$ && "$META_USED" =~ ^[0-9]+$ ]]; then
+        warning_output "Could not read btrfs allocation, skipping this check"
+    else
+        META_PCT=$(( META_USED * 100 / META_TOTAL ))
+
+        if (( UNALLOCATED < 1024 ** 3 && META_PCT > 85 )); then
+            failed_output "btrfs is fully allocated and metadata is ${META_PCT}% full"
+            echo "Only $(( UNALLOCATED / 1024 / 1024 )) MiB is unallocated"
+            echo "Not enough space to continue"
+            exit 1
+        fi
+
+        success_output "Verified btrfs allocation ($(gib "$UNALLOCATED") GiB unallocated, metadata ${META_PCT}%)"
+    fi
+fi
+
+echo "── Checking Repositories ─────────────────────────────────────────────────────────────── Step 3/7 ──"
 
 if [[ -f "$ONEPASS_REPO_FILE" ]]; then
     success_output "Verified 1Password repository is configured"
@@ -119,8 +185,8 @@ EOF
     fi
 fi
 
-echo "── Checking DNF Packages ─────────────────────────────────────────────────────────────── Step 3/6 ──"
-echo "── Checking DNF Packages - 3.1/3.3 ────────────────────────────────── Updating installed packages ──"
+echo "── Checking DNF Packages ─────────────────────────────────────────────────────────────── Step 4/7 ──"
+echo "── Checking DNF Packages - 4.1/4.3 ────────────────────────────────── Updating installed packages ──"
 
 if [[ "$SKIP_UPGRADE" == true ]]; then
     warning_output "Skipping package update (--skip-upgrade)"
@@ -131,7 +197,7 @@ else
     exit 1
 fi
 
-echo "── Checking DNF Packages - 3.2/3.3 ──────────────────────────────── Checking for missing packages ──"
+echo "── Checking DNF Packages - 4.2/4.3 ──────────────────────────────── Checking for missing packages ──"
 
 while IFS= read -r pkg || [[ -n "$pkg" ]]; do
     pkg=$(echo "$pkg" | sed -e 's/#.*//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
@@ -145,7 +211,7 @@ while IFS= read -r pkg || [[ -n "$pkg" ]]; do
     fi
 done < "$PACKAGES_FILE"
 
-echo "── Checking DNF Packages - 3.3/3.3 ────────────────────────────────── Installing missing packages ──"
+echo "── Checking DNF Packages - 4.3/4.3 ────────────────────────────────── Installing missing packages ──"
 
 if [[ ${#MISSING_PACKAGES[@]} -eq 0 ]]; then
     success_output "No missing packages to install"
@@ -156,8 +222,8 @@ else
     exit 1
 fi
 
-echo "── Checking Flatpak Packages ─────────────────────────────────────────────────────────── Step 4/6 ──"
-echo "── Checking Flatpak Packages - 4.1/4.4 ───────────────────────────────── Verifying flathub remote ──"
+echo "── Checking Flatpak Packages ─────────────────────────────────────────────────────────── Step 5/7 ──"
+echo "── Checking Flatpak Packages - 5.1/5.4 ───────────────────────────────── Verifying flathub remote ──"
 
 # Fedora only preconfigures its own remote, so anything from flathub fails to
 # install without this. --if-not-exists makes it a no-op on later runs.
@@ -168,7 +234,7 @@ else
     exit 1
 fi
 
-echo "── Checking Flatpak Packages - 4.2/4.4 ────────────────────────────── Updating installed flatpaks ──"
+echo "── Checking Flatpak Packages - 5.2/5.4 ────────────────────────────── Updating installed flatpaks ──"
 
 # Split by scope on purpose: a --system update run as a normal user blocks on a
 # polkit prompt, so that half goes through the already-cached sudo instead.
@@ -181,7 +247,7 @@ else
     exit 1
 fi
 
-echo "── Checking Flatpak Packages - 4.3/4.4 ──────────────────────────── Checking for missing flatpaks ──"
+echo "── Checking Flatpak Packages - 5.3/5.4 ──────────────────────────── Checking for missing flatpaks ──"
 
 while IFS= read -r line || [[ -n "$line" ]]; do
     line=$(echo "$line" | sed -e 's/#.*//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
@@ -203,7 +269,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     fi
 done < "$FLATPAK_FILE"
 
-echo "── Checking Flatpak Packages - 4.4/4.4 ────────────────────────────── Installing missing flatpaks ──"
+echo "── Checking Flatpak Packages - 5.4/5.4 ────────────────────────────── Installing missing flatpaks ──"
 
 if [[ ${#MISSING_FLATPAKS[@]} -eq 0 ]]; then
     success_output "No missing flatpaks to install"
@@ -214,8 +280,8 @@ else
     exit 1
 fi
 
-echo "── Checking Display Manager ──────────────────────────────────────────────────────────── Step 5/6 ──"
-echo "── Checking Display Manager - 5.1/5.2 ─────────────────────────────────── Checking Lightdm Status ──"
+echo "── Checking Display Manager ──────────────────────────────────────────────────────────── Step 6/7 ──"
+echo "── Checking Display Manager - 6.1/6.2 ─────────────────────────────────── Checking Lightdm Status ──"
 
 
 # lightdm comes in as a hard dependency of light-locker, but ships disabled.
@@ -240,7 +306,7 @@ else
         fi
     fi
 
-echo "── Checking Display Manager - 5.2/5.2 ────────────────────────────────────── Checking Boot Target ──"
+echo "── Checking Display Manager - 6.2/6.2 ────────────────────────────────────── Checking Boot Target ──"
 
     # Enabling lightdm alone is inert: the display manager is only started as
     # part of graphical.target, and a minimal install boots to multi-user.
@@ -257,7 +323,7 @@ echo "── Checking Display Manager - 5.2/5.2 ──────────�
     fi
 fi
 
-echo "── Checking Font ─────────────────────────────────────────────────────────────────────── Step 6/6 ──"
+echo "── Checking Font ─────────────────────────────────────────────────────────────────────── Step 7/7 ──"
 
 FONT_LIST=$(fc-list : family style)
 
