@@ -8,6 +8,7 @@ MY_YELLOW='\033[38;2;255;216;94m'
 MY_GREEN='\033[38;2;82;238;163m'
 DEFAULT='\033[0m'
 FONT_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/fonts"
+BOOKMARKS_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/gtk-3.0/bookmarks"
 FONT_NAME="JetBrainsMonoNerdFontMono-SemiBold.ttf"
 FONT_URL="https://raw.githubusercontent.com/ryanoasis/nerd-fonts/master/patched-fonts/JetBrainsMono/Ligatures/$FONT_NAME"
 # Resolve through the stow symlink so this works from the repo or from ~
@@ -16,9 +17,12 @@ PACKAGES_FILE="$SCRIPT_DIR/dnf_packages.txt"
 FLATPAK_FILE="$SCRIPT_DIR/flatpak_packages.txt"
 ONEPASS_KEY_URL="https://downloads.1password.com/linux/keys/1password.asc"
 ONEPASS_REPO_FILE="/etc/yum.repos.d/1password.repo"
+RPMFUSION_URL="https://mirrors.rpmfusion.org"
+RPMFUSION_REPO="free"
 # Overridable from the environment so an odd machine can be tuned without an edit
 MIN_DISK_GIB=${MIN_DISK_GIB:-25}
 MIN_FREE_GIB=${MIN_FREE_GIB:-10}
+DEFAULT_DIRS=("$HOME/Documents" "$HOME/Code" "$HOME/Pictures" "$HOME/Videos" "$HOME/Downloads")
 MISSING_PACKAGES=()
 MISSING_FLATPAKS=()
 SKIP_UPGRADE=false
@@ -89,7 +93,7 @@ SUDO_KP_PID=$!
 
 trap 'kill $SUDO_KP_PID 2>/dev/null || true' EXIT
 
-echo "── Checking Distro ───────────────────────────────────────────────────────────────────── Step 1/7 ──"
+echo "── Checking Distro ───────────────────────────────────────────────────────────────────── Step 1/8 ──"
 
 if [ -f /etc/os-release ]; then
     . /etc/os-release
@@ -106,7 +110,7 @@ else
     exit 1
 fi
 
-echo "── Checking Storage ──────────────────────────────────────────────────────────────────── Step 2/7 ──"
+echo "── Checking Storage ──────────────────────────────────────────────────────────────────── Step 2/8 ──"
 echo "── Checking Storage - 2.1/2.2 ────────────────────────────────────── Checking filesystem capacity ──"
 
 ROOT_FSTYPE=$(df --output=fstype / | tail -n 1 | tr -d '[:space:]')
@@ -158,7 +162,8 @@ else
     fi
 fi
 
-echo "── Checking Repositories ─────────────────────────────────────────────────────────────── Step 3/7 ──"
+echo "── Checking Repositories ─────────────────────────────────────────────────────────────── Step 3/8 ──"
+echo "── Checking Repositories - 3.1/3.2 ──────────────────────────────── Checking 1Password repository ──"
 
 if [[ -f "$ONEPASS_REPO_FILE" ]]; then
     success_output "Verified 1Password repository is configured"
@@ -185,7 +190,29 @@ EOF
     fi
 fi
 
-echo "── Checking DNF Packages ─────────────────────────────────────────────────────────────── Step 4/7 ──"
+echo "── Checking Repositories - 3.2/3.2 ─────────────────────────────── Checking RPM Fusion repository ──"
+
+# vlc-plugins-freeworld is from rpmfusion-free and shipped by the release package
+# use rpm instead of looking for the file like we did for 1Password
+RPMFUSION_PKG="rpmfusion-$RPMFUSION_REPO-release"
+
+if rpm -q "$RPMFUSION_PKG" &>/dev/null; then
+    success_output "Verified RPM Fusion $RPMFUSION_REPO repository is configured"
+else
+    warning_output "RPM Fusion $RPMFUSION_REPO repository is not configured"
+    echo "==> Adding RPM Fusion $RPMFUSION_REPO repository"
+
+    # Installed by URL out of necessity: the release package is what carries the
+    # repo definition, so there is no configured repo to pull it from yet.
+    if sudo dnf install -y "$RPMFUSION_URL/$RPMFUSION_REPO/fedora/$RPMFUSION_PKG-$(rpm -E %fedora).noarch.rpm"; then
+        success_output "Successfully added RPM Fusion $RPMFUSION_REPO repository"
+    else
+        failed_output "Failed to add RPM Fusion $RPMFUSION_REPO repository"
+        exit 1
+    fi
+fi
+
+echo "── Checking DNF Packages ─────────────────────────────────────────────────────────────── Step 4/8 ──"
 echo "── Checking DNF Packages - 4.1/4.3 ────────────────────────────────── Updating installed packages ──"
 
 if [[ "$SKIP_UPGRADE" == true ]]; then
@@ -222,7 +249,7 @@ else
     exit 1
 fi
 
-echo "── Checking Flatpak Packages ─────────────────────────────────────────────────────────── Step 5/7 ──"
+echo "── Checking Flatpak Packages ─────────────────────────────────────────────────────────── Step 5/8 ──"
 echo "── Checking Flatpak Packages - 5.1/5.4 ───────────────────────────────── Verifying flathub remote ──"
 
 # Fedora only preconfigures its own remote, so anything from flathub fails to
@@ -280,7 +307,7 @@ else
     exit 1
 fi
 
-echo "── Checking Display Manager ──────────────────────────────────────────────────────────── Step 6/7 ──"
+echo "── Checking Display Manager ──────────────────────────────────────────────────────────── Step 6/8 ──"
 echo "── Checking Display Manager - 6.1/6.2 ─────────────────────────────────── Checking Lightdm Status ──"
 
 
@@ -323,7 +350,7 @@ echo "── Checking Display Manager - 6.2/6.2 ──────────�
     fi
 fi
 
-echo "── Checking Font ─────────────────────────────────────────────────────────────────────── Step 7/7 ──"
+echo "── Checking Font ─────────────────────────────────────────────────────────────────────── Step 7/8 ──"
 
 FONT_LIST=$(fc-list : family style)
 
@@ -341,6 +368,38 @@ else
             failed_output "Failed to install Font"
             exit 1
         fi
+fi
+
+echo "── Checking Default Folders ──────────────────────────────────────────────────────────── Step 8/8 ──"
+echo "── Checking Default Folders - 8.1/8.2 ───────────────────────────────────── Checking home folders ──"
+
+for dir in "${DEFAULT_DIRS[@]}"; do
+    if [[ -d "$dir" ]]; then
+        success_output "──── Verified folder exists - ${dir/#"$HOME"/\~}"
+    elif mkdir -p "$dir"; then
+        success_output "Successfully created folder - ${dir/#"$HOME"/\~}"
+    else
+        failed_output "Failed to create folder - ${dir/#"$HOME"/\~}"
+        exit 1
+    fi
+done
+
+echo "── Checking Default Folders - 8.2/8.2 ───────────────────────────────── Checking Thunar bookmarks ──"
+
+# Thunar rewrites this file so instead of stowing it's generated once here
+if [[ -f "$BOOKMARKS_FILE" ]]; then
+    success_output "Verified Thunar bookmarks exist"
+else
+    warning_output "Thunar bookmarks are not configured"
+    echo "==> Adding Thunar bookmarks"
+
+    if mkdir -p "$(dirname -- "$BOOKMARKS_FILE")" && \
+        printf 'file://%s\n' "${DEFAULT_DIRS[@]}" > "$BOOKMARKS_FILE"; then
+        success_output "Successfully added ${#DEFAULT_DIRS[@]} Thunar bookmarks"
+    else
+        failed_output "Failed to add Thunar bookmarks"
+        exit 1
+    fi
 fi
 
 echo "── Setup complete! ─────────────────────────────────────────────────────────────────────────────────"
