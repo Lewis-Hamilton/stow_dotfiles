@@ -54,3 +54,8 @@ flameshot
 flatpak
 stow
 Thunar
+
+# ── Applications ───────────────────────────────────────────────────────────
+# These shouldn't be installed as flatpaks, can't be sandboxed
+firefox
+1password
