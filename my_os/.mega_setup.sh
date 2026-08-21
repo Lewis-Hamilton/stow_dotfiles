@@ -192,9 +192,8 @@ fi
 
 echo "── Checking Repositories - 3.2/3.2 ─────────────────────────────── Checking RPM Fusion repository ──"
 
-# vlc-plugins-freeworld comes from rpmfusion-free. The .repo file is shipped by
-# the release package, so ask rpm rather than looking for the file the way the
-# 1Password check above has to.
+# vlc-plugins-freeworld is from rpmfusion-free and shipped by the release package
+# use rpm instead of looking for the file like we did for 1Password
 RPMFUSION_PKG="rpmfusion-$RPMFUSION_REPO-release"
 
 if rpm -q "$RPMFUSION_PKG" &>/dev/null; then
