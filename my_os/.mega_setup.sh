@@ -13,6 +13,7 @@ FONT_NAME="JetBrainsMonoNerdFontMono-SemiBold.ttf"
 FONT_URL="https://raw.githubusercontent.com/ryanoasis/nerd-fonts/master/patched-fonts/JetBrainsMono/Ligatures/$FONT_NAME"
 # Resolve through the stow symlink so this works from the repo or from ~
 SCRIPT_DIR=$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")
+DOTFILES_DIR=$(dirname -- "$SCRIPT_DIR")
 PACKAGES_FILE="$SCRIPT_DIR/dnf_packages.txt"
 FLATPAK_FILE="$SCRIPT_DIR/flatpak_packages.txt"
 EXTENSIONS_FILE="$SCRIPT_DIR/code_extensions.txt"
@@ -96,7 +97,7 @@ SUDO_KP_PID=$!
 
 trap 'kill $SUDO_KP_PID 2>/dev/null || true' EXIT
 
-echo "── Checking Distro ───────────────────────────────────────────────────────────────────── Step 1/9 ──"
+echo "── Checking Distro ──────────────────────────────────────────────────────────────────── Step 1/10 ──"
 
 if [ -f /etc/os-release ]; then
     . /etc/os-release
@@ -113,7 +114,7 @@ else
     exit 1
 fi
 
-echo "── Checking Storage ──────────────────────────────────────────────────────────────────── Step 2/9 ──"
+echo "── Checking Storage ─────────────────────────────────────────────────────────────────── Step 2/10 ──"
 echo "── Checking Storage - 2.1/2.2 ────────────────────────────────────── Checking filesystem capacity ──"
 
 ROOT_FSTYPE=$(df --output=fstype / | tail -n 1 | tr -d '[:space:]')
@@ -165,7 +166,7 @@ else
     fi
 fi
 
-echo "── Checking Repositories ─────────────────────────────────────────────────────────────── Step 3/9 ──"
+echo "── Checking Repositories ────────────────────────────────────────────────────────────── Step 3/10 ──"
 echo "── Checking Repositories - 3.1/3.2 ──────────────────────────────── Checking 1Password repository ──"
 
 if [[ -f "$ONEPASS_REPO_FILE" ]]; then
@@ -215,7 +216,7 @@ else
     fi
 fi
 
-echo "── Checking DNF Packages ─────────────────────────────────────────────────────────────── Step 4/9 ──"
+echo "── Checking DNF Packages ────────────────────────────────────────────────────────────── Step 4/10 ──"
 echo "── Checking DNF Packages - 4.1/4.3 ────────────────────────────────── Updating installed packages ──"
 
 if [[ "$SKIP_UPGRADE" == true ]]; then
@@ -252,7 +253,7 @@ else
     exit 1
 fi
 
-echo "── Checking Flatpak Packages ─────────────────────────────────────────────────────────── Step 5/9 ──"
+echo "── Checking Flatpak Packages ────────────────────────────────────────────────────────── Step 5/10 ──"
 echo "── Checking Flatpak Packages - 5.1/5.4 ───────────────────────────────── Verifying flathub remote ──"
 
 # Fedora only preconfigures its own remote, so anything from flathub fails to
@@ -310,7 +311,7 @@ else
     exit 1
 fi
 
-echo "── Checking VSCodium Extensions ──────────────────────────────────────────────────────── Step 6/9 ──"
+echo "── Checking VSCodium Extensions ─────────────────────────────────────────────────────── Step 6/10 ──"
 echo "── Checking VSCodium Extensions - 6.1/6.2 ─────────────────────── Checking for missing extensions ──"
 
 INSTALLED_EXTENSIONS=$(flatpak run "$VSCODIUM_APP" --list-extensions 2>/dev/null | tr '[:upper:]' '[:lower:]' || true)
@@ -345,7 +346,7 @@ else
     fi
 fi
 
-echo "── Checking Display Manager ──────────────────────────────────────────────────────────── Step 7/9 ──"
+echo "── Checking Display Manager ─────────────────────────────────────────────────────────── Step 7/10 ──"
 echo "── Checking Display Manager - 7.1/7.2 ─────────────────────────────────── Checking Lightdm Status ──"
 
 
@@ -388,7 +389,7 @@ echo "── Checking Display Manager - 7.2/7.2 ──────────�
     fi
 fi
 
-echo "── Checking Font ─────────────────────────────────────────────────────────────────────── Step 8/9 ──"
+echo "── Checking Font ────────────────────────────────────────────────────────────────────── Step 8/10 ──"
 
 FONT_LIST=$(fc-list : family style)
 
@@ -408,7 +409,7 @@ else
         fi
 fi
 
-echo "── Checking Default Folders ──────────────────────────────────────────────────────────── Step 9/9 ──"
+echo "── Checking Default Folders ─────────────────────────────────────────────────────────── Step 9/10 ──"
 echo "── Checking Default Folders - 9.1/9.2 ───────────────────────────────────── Checking home folders ──"
 
 for dir in "${DEFAULT_DIRS[@]}"; do
@@ -438,6 +439,39 @@ else
         failed_output "Failed to add Thunar bookmarks"
         exit 1
     fi
+fi
+
+echo "── Checking Dotfile Symlinks ───────────────────────────────────────────────────────── Step 10/10 ──"
+echo "── Checking Dotfile Symlinks - 10.1/10.2 ───────────────────────── Checking for symlink conflicts ──"
+
+STOW_PACKAGES=()
+for pkg in "$DOTFILES_DIR"/*/; do
+    [[ -d "$pkg" ]] || continue
+    pkg=${pkg%/}
+    STOW_PACKAGES+=("${pkg##*/}")
+done
+
+if [[ ${#STOW_PACKAGES[@]} -eq 0 ]]; then
+    failed_output "Failed to find any stow packages in $DOTFILES_DIR"
+    exit 1
+fi
+
+if STOW_PLAN=$(stow --simulate --restow --dir "$DOTFILES_DIR" --target "$HOME" "${STOW_PACKAGES[@]}" 2>&1); then
+    success_output "Verified ${#STOW_PACKAGES[@]} packages are free of conflicts"
+else
+    failed_output "Failed to stow ${#STOW_PACKAGES[@]} packages - conflicts in $HOME"
+    echo "$STOW_PLAN"
+    echo "Move or delete the files above and re-run."
+    exit 1
+fi
+
+echo "── Checking Dotfile Symlinks - 10.2/10.2 ───────────────────────────── Restowing dotfile packages ──"
+
+if stow --restow --dir "$DOTFILES_DIR" --target "$HOME" "${STOW_PACKAGES[@]}"; then
+    success_output "Successfully stowed ${#STOW_PACKAGES[@]} packages"
+else
+    failed_output "Failed to stow ${#STOW_PACKAGES[@]} packages"
+    exit 1
 fi
 
 echo "── Setup complete! ─────────────────────────────────────────────────────────────────────────────────"
