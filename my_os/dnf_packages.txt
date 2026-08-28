@@ -17,7 +17,10 @@ gnome-keyring-pam
 network-manager-applet
 # Bluetooth tray applet, started by dex-autostart via /etc/xdg/autostart
 blueman
-light-locker
+# lightdm was only ever pulled in as a dependency of light-locker
+lightdm
+i3lock
+xss-lock
 syncthing
 
 # ── Display / compositing ──────────────────────────────────────────────────

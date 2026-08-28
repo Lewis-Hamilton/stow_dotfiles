@@ -124,7 +124,7 @@ for_window [class="slack"] move to workspace $ws1
 
 # xss-lock grabs a logind suspend inhibit lock and will use i3lock to lock the
 # screen before suspend. Use loginctl lock-session to lock your screen.
-exec_always --no-startup-id pkill -x light-locker; light-locker --lock-on-suspend --no-lock-on-lid
+exec_always --no-startup-id pkill -x xss-lock; xss-lock --transfer-sleep-lock -- i3lock -n -c 000000
 # lock via logind so 1Password (and anything listening for the Lock signal) re-locks too
 bindsym $mod+l exec --no-startup-id loginctl lock-session
 
