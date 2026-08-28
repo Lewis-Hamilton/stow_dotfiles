@@ -13,8 +13,11 @@ FONT_NAME="JetBrainsMonoNerdFontMono-SemiBold.ttf"
 FONT_URL="https://raw.githubusercontent.com/ryanoasis/nerd-fonts/master/patched-fonts/JetBrainsMono/Ligatures/$FONT_NAME"
 # Resolve through the stow symlink so this works from the repo or from ~
 SCRIPT_DIR=$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")
+DOTFILES_DIR=$(dirname -- "$SCRIPT_DIR")
 PACKAGES_FILE="$SCRIPT_DIR/dnf_packages.txt"
 FLATPAK_FILE="$SCRIPT_DIR/flatpak_packages.txt"
+EXTENSIONS_FILE="$SCRIPT_DIR/code_extensions.txt"
+VSCODIUM_APP="com.vscodium.codium"
 ONEPASS_KEY_URL="https://downloads.1password.com/linux/keys/1password.asc"
 ONEPASS_REPO_FILE="/etc/yum.repos.d/1password.repo"
 RPMFUSION_URL="https://mirrors.rpmfusion.org"
@@ -25,6 +28,7 @@ MIN_FREE_GIB=${MIN_FREE_GIB:-10}
 DEFAULT_DIRS=("$HOME/Documents" "$HOME/Code" "$HOME/Pictures" "$HOME/Videos" "$HOME/Downloads")
 MISSING_PACKAGES=()
 MISSING_FLATPAKS=()
+MISSING_EXTENSIONS=()
 SKIP_UPGRADE=false
 SKIP_STORAGE_CHECK=false
 
@@ -93,7 +97,7 @@ SUDO_KP_PID=$!
 
 trap 'kill $SUDO_KP_PID 2>/dev/null || true' EXIT
 
-echo "── Checking Distro ───────────────────────────────────────────────────────────────────── Step 1/8 ──"
+echo "── Checking Distro ──────────────────────────────────────────────────────────────────── Step 1/10 ──"
 
 if [ -f /etc/os-release ]; then
     . /etc/os-release
@@ -110,7 +114,7 @@ else
     exit 1
 fi
 
-echo "── Checking Storage ──────────────────────────────────────────────────────────────────── Step 2/8 ──"
+echo "── Checking Storage ─────────────────────────────────────────────────────────────────── Step 2/10 ──"
 echo "── Checking Storage - 2.1/2.2 ────────────────────────────────────── Checking filesystem capacity ──"
 
 ROOT_FSTYPE=$(df --output=fstype / | tail -n 1 | tr -d '[:space:]')
@@ -162,7 +166,7 @@ else
     fi
 fi
 
-echo "── Checking Repositories ─────────────────────────────────────────────────────────────── Step 3/8 ──"
+echo "── Checking Repositories ────────────────────────────────────────────────────────────── Step 3/10 ──"
 echo "── Checking Repositories - 3.1/3.2 ──────────────────────────────── Checking 1Password repository ──"
 
 if [[ -f "$ONEPASS_REPO_FILE" ]]; then
@@ -212,7 +216,7 @@ else
     fi
 fi
 
-echo "── Checking DNF Packages ─────────────────────────────────────────────────────────────── Step 4/8 ──"
+echo "── Checking DNF Packages ────────────────────────────────────────────────────────────── Step 4/10 ──"
 echo "── Checking DNF Packages - 4.1/4.3 ────────────────────────────────── Updating installed packages ──"
 
 if [[ "$SKIP_UPGRADE" == true ]]; then
@@ -249,7 +253,7 @@ else
     exit 1
 fi
 
-echo "── Checking Flatpak Packages ─────────────────────────────────────────────────────────── Step 5/8 ──"
+echo "── Checking Flatpak Packages ────────────────────────────────────────────────────────── Step 5/10 ──"
 echo "── Checking Flatpak Packages - 5.1/5.4 ───────────────────────────────── Verifying flathub remote ──"
 
 # Fedora only preconfigures its own remote, so anything from flathub fails to
@@ -307,8 +311,43 @@ else
     exit 1
 fi
 
-echo "── Checking Display Manager ──────────────────────────────────────────────────────────── Step 6/8 ──"
-echo "── Checking Display Manager - 6.1/6.2 ─────────────────────────────────── Checking Lightdm Status ──"
+echo "── Checking VSCodium Extensions ─────────────────────────────────────────────────────── Step 6/10 ──"
+echo "── Checking VSCodium Extensions - 6.1/6.2 ─────────────────────── Checking for missing extensions ──"
+
+INSTALLED_EXTENSIONS=$(flatpak run "$VSCODIUM_APP" --list-extensions 2>/dev/null | tr '[:upper:]' '[:lower:]' || true)
+
+while IFS= read -r ext || [[ -n "$ext" ]]; do
+    ext=$(echo "$ext" | sed -e 's/#.*//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+    [[ -z "$ext" ]] && continue
+
+    if grep -qxF "$(echo "$ext" | tr '[:upper:]' '[:lower:]')" <<< "$INSTALLED_EXTENSIONS"; then
+        success_output "Verified install - $ext"
+    else
+        warning_output "── Not installed - $ext"
+        MISSING_EXTENSIONS+=("$ext")
+    fi
+done < "$EXTENSIONS_FILE"
+
+echo "── Checking VSCodium Extensions - 6.2/6.2 ───────────────────────── Installing missing extensions ──"
+
+if [[ ${#MISSING_EXTENSIONS[@]} -eq 0 ]]; then
+    success_output "No missing extensions to install"
+else
+    EXTENSION_ARGS=()
+    for ext in "${MISSING_EXTENSIONS[@]}"; do
+        EXTENSION_ARGS+=(--install-extension "$ext")
+    done
+
+    if flatpak run "$VSCODIUM_APP" "${EXTENSION_ARGS[@]}"; then
+        success_output "Successfully installed ${#MISSING_EXTENSIONS[@]} missing extensions"
+    else
+        failed_output "Failed to install missing extensions"
+        exit 1
+    fi
+fi
+
+echo "── Checking Display Manager ─────────────────────────────────────────────────────────── Step 7/10 ──"
+echo "── Checking Display Manager - 7.1/7.2 ─────────────────────────────────── Checking Lightdm Status ──"
 
 
 # lightdm comes in as a hard dependency of light-locker, but ships disabled.
@@ -333,7 +372,7 @@ else
         fi
     fi
 
-echo "── Checking Display Manager - 6.2/6.2 ────────────────────────────────────── Checking Boot Target ──"
+echo "── Checking Display Manager - 7.2/7.2 ────────────────────────────────────── Checking Boot Target ──"
 
     # Enabling lightdm alone is inert: the display manager is only started as
     # part of graphical.target, and a minimal install boots to multi-user.
@@ -350,7 +389,7 @@ echo "── Checking Display Manager - 6.2/6.2 ──────────�
     fi
 fi
 
-echo "── Checking Font ─────────────────────────────────────────────────────────────────────── Step 7/8 ──"
+echo "── Checking Font ────────────────────────────────────────────────────────────────────── Step 8/10 ──"
 
 FONT_LIST=$(fc-list : family style)
 
@@ -370,8 +409,8 @@ else
         fi
 fi
 
-echo "── Checking Default Folders ──────────────────────────────────────────────────────────── Step 8/8 ──"
-echo "── Checking Default Folders - 8.1/8.2 ───────────────────────────────────── Checking home folders ──"
+echo "── Checking Default Folders ─────────────────────────────────────────────────────────── Step 9/10 ──"
+echo "── Checking Default Folders - 9.1/9.2 ───────────────────────────────────── Checking home folders ──"
 
 for dir in "${DEFAULT_DIRS[@]}"; do
     if [[ -d "$dir" ]]; then
@@ -384,7 +423,7 @@ for dir in "${DEFAULT_DIRS[@]}"; do
     fi
 done
 
-echo "── Checking Default Folders - 8.2/8.2 ───────────────────────────────── Checking Thunar bookmarks ──"
+echo "── Checking Default Folders - 9.2/9.2 ───────────────────────────────── Checking Thunar bookmarks ──"
 
 # Thunar rewrites this file so instead of stowing it's generated once here
 if [[ -f "$BOOKMARKS_FILE" ]]; then
@@ -400,6 +439,39 @@ else
         failed_output "Failed to add Thunar bookmarks"
         exit 1
     fi
+fi
+
+echo "── Checking Dotfile Symlinks ───────────────────────────────────────────────────────── Step 10/10 ──"
+echo "── Checking Dotfile Symlinks - 10.1/10.2 ───────────────────────── Checking for symlink conflicts ──"
+
+STOW_PACKAGES=()
+for pkg in "$DOTFILES_DIR"/*/; do
+    [[ -d "$pkg" ]] || continue
+    pkg=${pkg%/}
+    STOW_PACKAGES+=("${pkg##*/}")
+done
+
+if [[ ${#STOW_PACKAGES[@]} -eq 0 ]]; then
+    failed_output "Failed to find any stow packages in $DOTFILES_DIR"
+    exit 1
+fi
+
+if STOW_PLAN=$(stow --simulate --restow --dir "$DOTFILES_DIR" --target "$HOME" "${STOW_PACKAGES[@]}" 2>&1); then
+    success_output "Verified ${#STOW_PACKAGES[@]} packages are free of conflicts"
+else
+    failed_output "Failed to stow ${#STOW_PACKAGES[@]} packages - conflicts in $HOME"
+    echo "$STOW_PLAN"
+    echo "Move or delete the files above and re-run."
+    exit 1
+fi
+
+echo "── Checking Dotfile Symlinks - 10.2/10.2 ───────────────────────────── Restowing dotfile packages ──"
+
+if stow --restow --dir "$DOTFILES_DIR" --target "$HOME" "${STOW_PACKAGES[@]}"; then
+    success_output "Successfully stowed ${#STOW_PACKAGES[@]} packages"
+else
+    failed_output "Failed to stow ${#STOW_PACKAGES[@]} packages"
+    exit 1
 fi
 
 echo "── Setup complete! ─────────────────────────────────────────────────────────────────────────────────"
