@@ -97,26 +97,6 @@ command=$SCRIPT_DIR/memory/memory
 interval=20
 markup=pango
 
-# Network interface monitoring
-#
-# If the instance is not specified, use the interface used for default route.
-# The address can be forced to IPv4 or IPv6 with -4 or -6 switches.
-[iface]
-#IFACE=wlan0
-color=#00FF00
-interval=10
-separator=false
-
-[wifi]
-#INTERFACE=wlp3s0
-label=wifi:
-interval=10
-separator=false
-
-[bandwidth]
-#INTERFACE=eth0
-interval=5
-
 # CPU usage
 #
 # The script may be called with -w and -c switches to specify thresholds,
@@ -127,10 +107,6 @@ interval=5
 command=$SCRIPT_DIR/cpu/cpu
 interval=20
 markup=pango
-
-[load_average]
-label=LOAD
-interval=10
 
 # Battery indicator
 #
