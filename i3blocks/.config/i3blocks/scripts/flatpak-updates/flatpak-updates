@@ -3,9 +3,7 @@
 source ~/.my_colors.sh
 
 # This script gets the number of available Flatpak updates
-# --cached reads local metadata; without it flatpak refreshes system metadata,
-# which raises an org.freedesktop.Flatpak.metadata-update polkit prompt
-updates=$(flatpak remote-ls --updates --cached --columns=application | wc -l)
+updates=$(flatpak remote-ls --updates --columns=application | wc -l)
 
 if [ "$updates" -eq 0 ]; then
 	color=$MY_GREEN
