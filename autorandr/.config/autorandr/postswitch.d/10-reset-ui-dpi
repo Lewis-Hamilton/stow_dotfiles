@@ -1,0 +1,6 @@
+#!/bin/bash
+# Keep UI sizing at the normal X11 baseline for every display profile.
+xrdb -merge <<'EOF'
+Xft.dpi: 96
+EOF
+gsettings set org.gnome.desktop.interface text-scaling-factor 1.0
