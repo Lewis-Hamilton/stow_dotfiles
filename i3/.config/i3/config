@@ -30,6 +30,7 @@ exec --no-startup-id gsettings set org.gnome.desktop.interface color-scheme 'pre
 exec_always --no-startup-id xmodmap ~/.Xmodmap
 exec_always --no-startup-id ~/.config/i3/scripts/configure-touchpad.sh
 exec_always --no-startup-id ~/.config/i3/scripts/start-compositor.sh
+exec_always --no-startup-id ~/.config/i3/scripts/slack-dunst-focus.sh
 exec_always --no-startup-id feh --bg-fill /usr/share/backgrounds/speed.png
 
 # ── Keybinds ──────────────────────────────────────────────────────────────────────────────────────
