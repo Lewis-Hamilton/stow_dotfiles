@@ -6,6 +6,7 @@
 
 # ── Graphical session ──────────────────────────────────────────────────────
 xorg-x11-server-Xorg
+xinput
 i3
 i3blocks
 rofi
