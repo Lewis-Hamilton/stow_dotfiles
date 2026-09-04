@@ -331,10 +331,10 @@
     # * context_all: Open context menu for all notifications.
     # These values can be strung together for each mouse event, and
     # will be executed in sequence.
-    # Twingate publishes its additional-authentication URL in the notification
-    # body instead of as a freedesktop notification action. Open that URL when
-    # the notification is clicked, then dismiss the notification.
-    mouse_left_click = open_url, remove_current
+    # Invoke the notification's default action without immediately removing it.
+    # Twingate handles the action asynchronously and still needs the notification
+    # ID; removing it in the same click can race the action handler after login.
+    mouse_left_click = do_action
     mouse_middle_click = do_action, close_current
     mouse_right_click = close_all
 
