@@ -105,7 +105,7 @@ markup=pango
 
 [cpu]
 command=$SCRIPT_DIR/cpu/cpu
-interval=20
+interval=5
 markup=pango
 
 # Battery indicator
