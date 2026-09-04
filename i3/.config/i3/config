@@ -130,9 +130,6 @@ exec_always --no-startup-id pkill -x xss-lock; xss-lock --transfer-sleep-lock --
 # lock via logind so 1Password (and anything listening for the Lock signal) re-locks too
 bindsym $mod+l exec --no-startup-id loginctl lock-session
 
-bindsym $mod+t resize set width 25 ppt
-bindsym $mod+i resize set width 75 ppt
-
 # NetworkManager is the most popular way to manage wireless networks on Linux,
 # and nm-applet is a desktop environment-independent system tray GUI for it.
 exec --no-startup-id nm-applet
@@ -185,10 +182,13 @@ bindsym $mod+v split v
 
 
 # change container layout (stacked, tabbed, toggle split)
-# turned this off because I don't use it, want mod+s for suspend
-# bindsym $mod+s layout stacking
-bindsym $mod+w layout tabbed
-bindsym $mod+e layout toggle split
+# I switched these up to what made sense to me
+# Mod+t because it's tabbed
+# Mod+w for split because w is kinda like a split u idk. 
+# Mod+e for stacking because it was left over
+bindsym $mod+e layout stacking
+bindsym $mod+t layout tabbed
+bindsym $mod+w layout toggle split
 
 # toggle tiling / floating
 bindsym $mod+Shift+space floating toggle
