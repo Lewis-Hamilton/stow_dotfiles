@@ -13,9 +13,8 @@ its battery during a long lid-close suspend.
 Configured behavior:
 
 - Closing the lid while undocked starts `suspend-then-hibernate`.
-- The laptop hibernates after 24 hours on battery or at 50% charge, whichever
-  happens first.
-- The 24-hour countdown does not run while connected to AC power.
+- The laptop hibernates after 12 hours on battery.
+- The 12-hour countdown does not run while connected to AC power.
 - Closing the lid while docked is ignored.
 
 These instructions are for Fedora with systemd, a Btrfs root filesystem, and
@@ -85,7 +84,7 @@ Use `btrfs inspect-internal map-swapfile`; the offset reported by `filefrag` is
 not the correct Btrfs resume offset. See the
 [Btrfs hibernation documentation](https://btrfs.readthedocs.io/en/latest/ch-swapfile.html).
 
-### 4. Configure lid handling and the 24-hour fallback
+### 4. Configure lid handling and the 12-hour fallback
 
 Create `/etc/systemd/logind.conf.d/60-lid-suspend-then-hibernate.conf`:
 
@@ -99,73 +98,14 @@ Create `/etc/systemd/sleep.conf.d/60-suspend-then-hibernate.conf`:
 
 ```ini
 [Sleep]
-HibernateDelaySec=24h
+HibernateDelaySec=12h
 HibernateOnACPower=no
 ```
 
-Systemd's built-in low-battery cutoff for `suspend-then-hibernate` is fixed at
-5%. The optional next step raises it to 50% on laptops that expose an ACPI
-battery alarm.
+The fixed timer is used because ACPI battery alarms are firmware-dependent and
+did not wake the Dell XPS 15 9520 reliably.
 
-### 5. Set the optional 50% ACPI wake alarm
-
-First check for an alarm and note the battery name; it is `BAT0` below:
-
-```bash
-ls /sys/class/power_supply/*/alarm
-cat /sys/class/power_supply/BAT0/charge_full
-cat /sys/class/power_supply/BAT0/alarm
-```
-
-If no `alarm` file exists or a root write is rejected, skip this section. The
-24-hour timer will still work.
-
-Create `/usr/local/libexec/set-hibernate-battery-alarm`:
-
-```bash
-#!/usr/bin/env bash
-set -euo pipefail
-
-battery=/sys/class/power_supply/BAT0
-percentage=50
-full_charge=$(<"$battery/charge_full")
-alarm_charge=$((full_charge * percentage / 100))
-printf '%s\n' "$alarm_charge" > "$battery/alarm"
-```
-
-Make it executable, then create
-`/etc/systemd/system/hibernate-battery-alarm.service`:
-
-```ini
-[Unit]
-Description=Set the suspend-to-hibernate battery wake alarm to 50%%
-After=sys-class-power_supply-BAT0.device
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/libexec/set-hibernate-battery-alarm
-RemainAfterExit=yes
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Enable it:
-
-```bash
-sudo chmod 755 /usr/local/libexec/set-hibernate-battery-alarm
-sudo systemctl daemon-reload
-sudo systemctl enable --now hibernate-battery-alarm.service
-```
-
-The ACPI alarm is expressed in charge units, not percentage. The helper
-recalculates 50% from the battery's learned full-charge capacity on every boot.
-This depends on firmware correctly reporting an APM-timer wake; the 24-hour
-timer is the safety fallback. See the
-[Linux ACPI battery driver](https://github.com/torvalds/linux/blob/master/drivers/acpi/battery.c)
-and [systemd sleep implementation](https://github.com/systemd/systemd/blob/main/src/sleep/sleep.c).
-
-### 6. Reboot, verify, and test
+### 5. Reboot, verify, and test
 
 Reboot before relying on hibernation. Then verify:
 
@@ -175,7 +115,6 @@ systemd-analyze cat-config systemd/logind.conf
 systemd-analyze cat-config systemd/sleep.conf
 sudo grubby --info=ALL
 sudo lsinitrd -m "/boot/initramfs-$(uname -r).img" | grep resume
-cat /sys/class/power_supply/BAT0/alarm
 ```
 
 Save open work before the first test, disconnect docks and AC power, then run:
@@ -189,7 +128,7 @@ after direct hibernation succeeds should `suspend-then-hibernate` be trusted.
 
 ### Rollback
 
-Disable and remove the battery-alarm service and helper, remove the two systemd
-drop-ins, remove the resume arguments with `grubby`, and rebuild the initramfs.
-Then run `swapoff /swap/hibernate.swap`, remove its `/etc/fstab` entry, and
-delete the swap file. Reboot to restore Fedora's default lid behavior.
+Remove the two systemd drop-ins, remove the resume arguments with `grubby`, and
+rebuild the initramfs. Then run `swapoff /swap/hibernate.swap`, remove its
+`/etc/fstab` entry, and delete the swap file. Reboot to restore Fedora's default
+lid behavior.
