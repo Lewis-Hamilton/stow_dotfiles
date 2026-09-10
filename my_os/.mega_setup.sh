@@ -26,6 +26,7 @@ RPMFUSION_REPO="free"
 MIN_DISK_GIB=${MIN_DISK_GIB:-25}
 MIN_FREE_GIB=${MIN_FREE_GIB:-10}
 DEFAULT_DIRS=("$HOME/Documents" "$HOME/Code" "$HOME/Pictures" "$HOME/Videos" "$HOME/Downloads")
+SCREENSHOT_DIR="$HOME/Pictures/Screenshots"
 MISSING_PACKAGES=()
 MISSING_FLATPAKS=()
 MISSING_EXTENSIONS=()
@@ -412,7 +413,7 @@ fi
 echo "── Checking Default Folders ─────────────────────────────────────────────────────────── Step 9/10 ──"
 echo "── Checking Default Folders - 9.1/9.2 ───────────────────────────────────── Checking home folders ──"
 
-for dir in "${DEFAULT_DIRS[@]}"; do
+for dir in "${DEFAULT_DIRS[@]}" ${SCREENSHOT_DIR}; do
     if [[ -d "$dir" ]]; then
         success_output "──── Verified folder exists - ${dir/#"$HOME"/\~}"
     elif mkdir -p "$dir"; then

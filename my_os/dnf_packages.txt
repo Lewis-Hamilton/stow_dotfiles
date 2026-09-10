@@ -6,6 +6,7 @@
 
 # ── Graphical session ──────────────────────────────────────────────────────
 xorg-x11-server-Xorg
+xinput
 i3
 i3blocks
 rofi
@@ -15,7 +16,10 @@ dex-autostart
 mate-polkit
 gnome-keyring-pam
 network-manager-applet
-light-locker
+blueman
+lightdm
+i3lock
+xss-lock
 syncthing
 
 # ── Display / compositing ──────────────────────────────────────────────────
