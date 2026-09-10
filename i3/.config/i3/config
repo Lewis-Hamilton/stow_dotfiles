@@ -25,6 +25,7 @@ exec --no-startup-id syncthing --no-browser
 # ── Set wallpaper ever time so it updates with monitors
 exec_always --no-startup-id xmodmap ~/.Xmodmap
 exec_always --no-startup-id ~/.config/i3/scripts/start-compositor.sh
+exec_always --no-startup-id ~/.config/i3/scripts/slack-dunst-focus.sh
 exec_always --no-startup-id feh --bg-fill /usr/share/backgrounds/speed.png
 
 # ── Keybinds ──────────────────────────────────────────────────────────────────────────────────────

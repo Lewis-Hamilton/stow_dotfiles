@@ -331,10 +331,10 @@
     # * context_all: Open context menu for all notifications.
     # These values can be strung together for each mouse event, and
     # will be executed in sequence.
-    # do_action invokes the notification's action (e.g. focus the app/tab);
-    # remove_current then dismisses it without saving to history. Order matters:
-    # act first, remove second (removing first would invalidate the action).
-    mouse_left_click = do_action, remove_current
+    # Invoke the notification's default action without immediately removing it.
+    # Twingate handles the action asynchronously and still needs the notification
+    # ID; removing it in the same click can race the action handler after login.
+    mouse_left_click = do_action
     mouse_middle_click = do_action, close_current
     mouse_right_click = close_all
 
@@ -361,6 +361,11 @@
 [slack_low]
     appname = Slack
     urgency = low
+
+# Enabled dynamically while Slack is the focused window.
+[slack_focused]
+    appname = Slack
+    skip_display = true
 
 [firefox_calendar]
     appname = Firefox
