@@ -184,7 +184,7 @@ bindsym $mod+v split v
 # change container layout (stacked, tabbed, toggle split)
 # I switched these up to what made sense to me
 # Mod+t because it's tabbed
-# Mod+w for split because w is kinda like a split u idk. 
+# Mod+w for split because w is kinda like a split u idk.
 # Mod+e for stacking because it was left over
 bindsym $mod+e layout stacking
 bindsym $mod+t layout tabbed
