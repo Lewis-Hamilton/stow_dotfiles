@@ -12,12 +12,16 @@
 # ── Start system target
 # ── Polkit auth agent (so 1Password can use system auth)
 # ── Syncthing
+# ── gnome-keyring stage 2 (PAM starts stage 1; i3 has no GNOME autostart)
+# ── Dark mode for portal-aware apps (Electron/Slack ignore gtk settings.ini)
 exec --no-startup-id dex-autostart --autostart --environment i3
 exec --no-startup-id systemctl --user import-environment DISPLAY XAUTHORITY
 exec --no-startup-id dbus-update-activation-environment --systemd DISPLAY XAUTHORITY
 exec --no-startup-id systemctl --user start i3-session.target
 exec --no-startup-id /usr/libexec/polkit-mate-authentication-agent-1
 exec --no-startup-id syncthing --no-browser
+exec --no-startup-id /usr/bin/gnome-keyring-daemon --start --components=secrets,ssh
+exec --no-startup-id gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
 
 # ── Always Run (on reload) ────────────────────────────────────────────────────────────────────────
 # ── Swaps caps lock and windows key
@@ -28,33 +32,46 @@ exec_always --no-startup-id ~/.config/i3/scripts/start-compositor.sh
 exec_always --no-startup-id ~/.config/i3/scripts/slack-dunst-focus.sh
 exec_always --no-startup-id feh --bg-fill /usr/share/backgrounds/speed.png
 
-# ── Keybinds ──────────────────────────────────────────────────────────────────────────────────────
-# ── Caps lock is super key
+# ────────────────────────────────────────────────────────────────────────────────────── Keybinds ──
+# ── Basic System Functions ────────────────────────────────────────────────────────────────────────
 # ── launch flameshot (screenshot)
 # ── launch terminal
 # ── launch rofi (app launch menu)
+# ── Sleep system
+# ── Launch shutdown/reboot menu
+# ── Lock system
+# ── brightness decrease
+# ── brightness increase
+bindsym Print exec --no-startup-id flameshot gui
+bindsym $mod+Return exec urxvt
+bindsym $mod+d exec "rofi -show drun"
+bindsym $mod+s exec --no-startup-id systemctl suspend
+bindsym $mod+shift+s exec --no-startup-id ~/.config/i3/scripts/power-menu.sh
+bindsym $mod+l exec --no-startup-id loginctl lock-session
+bindcode 232 exec --no-startup-id brightnessctl set 10%- && pkill -SIGRTMIN+9 i3blocks
+bindcode 233 exec --no-startup-id brightnessctl set +10% && pkill -SIGRTMIN+9 i3blocks
+
+# ── i3 ────────────────────────────────────────────────────────────────────────────────────────────
+# ── Caps lock is super key
 # ── focused window fullscreen
 # ── focused window kill
 # ── reload the configuration file
 # ── rename workspace
 # ── restart i3 (preserve session)
-# ── Sleep system
-# ── Launch shutdown/reboot menu
-# ── brightness decrease
-# ── brightness increase
 set $mod Mod4
-bindsym Print exec --no-startup-id flameshot gui
-bindsym $mod+Return exec urxvt
-bindsym $mod+d exec "rofi -show drun"
 bindsym $mod+f fullscreen toggle
 bindsym $mod+q kill
 bindsym $mod+r reload
 bindsym $mod+n exec --no-startup-id ~/.config/i3/scripts/rename-workspace.sh
 bindsym $mod+Shift+r restart
-bindsym $mod+s exec --no-startup-id systemctl suspend
-bindsym $mod+shift+s exec --no-startup-id ~/.config/i3/scripts/power-menu.sh
-bindcode 232 exec --no-startup-id brightnessctl set 10%- && pkill -SIGRTMIN+9 i3blocks
-bindcode 233 exec --no-startup-id brightnessctl set +10% && pkill -SIGRTMIN+9 i3blocks
+
+# ── Layout ────────────────────────────────────────────────────────────────────────────────────────
+# ── Stacking
+# ── Tabbed
+# ── Default
+bindsym $mod+w layout stacking
+bindsym $mod+Tab layout tabbed
+bindsym $mod+e layout toggle split
 
 # ── Font ──────────────────────────────────────────────────────────────────────────────────────────
 # ── Font for window titles and i3 bar
@@ -121,12 +138,7 @@ for_window [class="slack"] move to workspace $ws1
 
 # xss-lock grabs a logind suspend inhibit lock and will use i3lock to lock the
 # screen before suspend. Use loginctl lock-session to lock your screen.
-exec_always --no-startup-id pkill -x light-locker; light-locker --lock-on-suspend
-# lock via logind so 1Password (and anything listening for the Lock signal) re-locks too
-bindsym $mod+l exec --no-startup-id loginctl lock-session
-
-bindsym $mod+t resize set width 25 ppt
-bindsym $mod+i resize set width 75 ppt
+exec_always --no-startup-id pkill -x xss-lock; xss-lock --transfer-sleep-lock -- i3lock -n -c 000000
 
 # NetworkManager is the most popular way to manage wireless networks on Linux,
 # and nm-applet is a desktop environment-independent system tray GUI for it.
@@ -177,13 +189,6 @@ bindsym $mod+h split h
 
 # split in vertical orientation
 bindsym $mod+v split v
-
-
-# change container layout (stacked, tabbed, toggle split)
-# turned this off because I don't use it, want mod+s for suspend
-# bindsym $mod+s layout stacking
-bindsym $mod+w layout tabbed
-bindsym $mod+e layout toggle split
 
 # toggle tiling / floating
 bindsym $mod+Shift+space floating toggle
