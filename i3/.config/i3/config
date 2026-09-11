@@ -128,9 +128,6 @@ exec_always --no-startup-id pkill -x xss-lock; xss-lock --transfer-sleep-lock --
 # lock via logind so 1Password (and anything listening for the Lock signal) re-locks too
 bindsym $mod+l exec --no-startup-id loginctl lock-session
 
-bindsym $mod+t resize set width 25 ppt
-bindsym $mod+i resize set width 75 ppt
-
 # NetworkManager is the most popular way to manage wireless networks on Linux,
 # and nm-applet is a desktop environment-independent system tray GUI for it.
 exec --no-startup-id nm-applet
