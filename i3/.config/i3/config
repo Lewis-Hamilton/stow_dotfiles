@@ -62,7 +62,7 @@ bindsym $mod+f fullscreen toggle
 bindsym $mod+q kill
 bindsym $mod+r reload
 bindsym $mod+n exec --no-startup-id ~/.config/i3/scripts/rename-workspace.sh
-bindsym $mod+Shift+r restartz
+bindsym $mod+Shift+r restart
 
 # ── Layout ────────────────────────────────────────────────────────────────────────────────────────
 # ── Stacking
