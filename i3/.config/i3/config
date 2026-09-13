@@ -24,10 +24,12 @@ exec --no-startup-id /usr/bin/gnome-keyring-daemon --start --components=secrets,
 exec --no-startup-id gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
 
 # ── Always Run (on reload) ────────────────────────────────────────────────────────────────────────
-# ── Swaps caps lock and windows key
+# ── Swap caps lock and windows key, even when keyboard is added/removed
+# ── Make Trackpad tap to click and swap scrolling
 # ── Compositor
 # ── Set wallpaper ever time so it updates with monitors
-exec_always --no-startup-id xmodmap ~/.Xmodmap
+exec_always --no-startup-id ~/.config/i3/scripts/watch-keyboards.sh
+exec_always --no-startup-id ~/.config/i3/scripts/configure-touchpad.sh
 exec_always --no-startup-id ~/.config/i3/scripts/start-compositor.sh
 exec_always --no-startup-id feh --bg-fill /usr/share/backgrounds/speed.png
 
@@ -62,7 +64,7 @@ bindsym $mod+f fullscreen toggle
 bindsym $mod+q kill
 bindsym $mod+r reload
 bindsym $mod+n exec --no-startup-id ~/.config/i3/scripts/rename-workspace.sh
-bindsym $mod+Shift+r restartz
+bindsym $mod+Shift+r restart
 
 # ── Layout ────────────────────────────────────────────────────────────────────────────────────────
 # ── Stacking
