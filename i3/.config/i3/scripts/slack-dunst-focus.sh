@@ -1,4 +1,13 @@
+
 #!/bin/bash
+
+# Skip the watcher on machines without native or Flatpak Slack installed.
+if ! command -v slack >/dev/null 2>&1; then
+    if ! command -v flatpak >/dev/null 2>&1 \
+        || ! flatpak info com.slack.Slack >/dev/null 2>&1; then
+        exit 0
+    fi
+fi
 
 set_slack_rule() {
     focused_class=$(

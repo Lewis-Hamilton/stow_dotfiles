@@ -362,7 +362,7 @@
     appname = Slack
     urgency = low
 
-# Enabled dynamically while Slack is the focused window.
+# Based on window focused ~/.config/i3/scripts/slack-dunst-focus.sh
 [slack_focused]
     appname = Slack
     skip_display = true
