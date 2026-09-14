@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 # Skip the watcher on machines without native or Flatpak Slack installed.
