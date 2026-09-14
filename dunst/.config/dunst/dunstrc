@@ -362,6 +362,11 @@
     appname = Slack
     urgency = low
 
+# Based on window focused ~/.config/i3/scripts/slack-dunst-focus.sh
+[slack_focused]
+    appname = Slack
+    skip_display = true
+
 [firefox_calendar]
     appname = Firefox
     body = "*m – *"
