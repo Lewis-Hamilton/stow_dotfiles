@@ -8,6 +8,20 @@ if [[ ${1-} == --print ]]; then
 fi
 
 found_battery=false
+history_file="${XDG_STATE_HOME:-$HOME/.local/state}/battery-health/history.tsv"
+
+log_health() {
+    mkdir -p -- "${history_file%/*}" || return
+    (
+        flock -x 9 || exit
+        if [[ ! -s $history_file ]]; then
+            printf 'timestamp\tbattery\thealth_percent\tfull_capacity\tdesign_capacity\tcapacity_unit\n' >&9 || exit
+        fi
+        printf '%s\t%s\t%s\t%s\t%s\t%s\n' \
+            "$(date --iso-8601=seconds)" "$battery_name" "$health_percent" \
+            "$full_capacity" "$design_capacity" "$capacity_unit" >&9
+    ) 9>>"$history_file"
+}
 
 for battery_path in /sys/class/power_supply/*; do
     [[ -r $battery_path/type ]] || continue
@@ -16,9 +30,11 @@ for battery_path in /sys/class/power_supply/*; do
     if [[ -r $battery_path/charge_full && -r $battery_path/charge_full_design ]]; then
         full_capacity=$(<"$battery_path/charge_full")
         design_capacity=$(<"$battery_path/charge_full_design")
+        capacity_unit=uAh
     elif [[ -r $battery_path/energy_full && -r $battery_path/energy_full_design ]]; then
         full_capacity=$(<"$battery_path/energy_full")
         design_capacity=$(<"$battery_path/energy_full_design")
+        capacity_unit=uWh
     else
         continue
     fi
@@ -42,6 +58,9 @@ for battery_path in /sys/class/power_supply/*; do
     if [[ $print_only == true ]]; then
         printf '%s\n%s\n' "$title" "$body"
     else
+        if ! log_health; then
+            printf 'Could not append battery health to %s\n' "$history_file" >&2
+        fi
         notify-send \
             --app-name='Battery health' \
             --icon=battery-good-symbolic \
