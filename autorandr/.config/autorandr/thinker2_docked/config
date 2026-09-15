@@ -1,5 +1,4 @@
 output DP-4
-crtc 2
 mode 2560x1440
 pos 5120x0
 rate 59.95
@@ -12,7 +11,6 @@ x-prop-underscan off
 x-prop-underscan_hborder 0
 x-prop-underscan_vborder 0
 output DP-3
-crtc 0
 mode 2560x1440
 pos 0x560
 rate 59.95
@@ -24,7 +22,6 @@ x-prop-underscan off
 x-prop-underscan_hborder 0
 x-prop-underscan_vborder 0
 output DP-2
-crtc 1
 mode 2560x1440
 pos 2560x560
 primary
