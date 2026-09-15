@@ -23,7 +23,7 @@ exec --no-startup-id syncthing --no-browser
 exec --no-startup-id /usr/bin/gnome-keyring-daemon --start --components=secrets,ssh
 exec --no-startup-id gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
 
-# ── Always Run (on reload) ────────────────────────────────────────────────────────────────────────
+# ── Always Run (on startup and i3 restart, not i3 reload) ──────────────────────────────────────────
 # ── Swap caps lock and windows key, even when keyboard is added/removed
 # ── Make Trackpad tap to click and swap scrolling
 # ── Compositor
