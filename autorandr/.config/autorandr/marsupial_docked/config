@@ -1,6 +1,7 @@
 output DP-4-2
 crtc 1
 mode 3440x1440
+primary
 rate 60.00
 x-prop-audio auto
 x-prop-broadcast_rgb Automatic
