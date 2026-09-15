@@ -7,3 +7,5 @@ x-prop-audio auto
 x-prop-broadcast_rgb Automatic
 x-prop-max_bpc 12
 x-prop-non_desktop 0
+output eDP-1
+off
