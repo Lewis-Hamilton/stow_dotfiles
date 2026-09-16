@@ -17,4 +17,3 @@ Running `~/.local/bin/notify-battery-health` manually also logs a reading and
 shows a notification. Use `--print` to inspect health without writing history
 or showing a notification. Logging begins with the next run; previous
 notifications are not backfilled.
-
