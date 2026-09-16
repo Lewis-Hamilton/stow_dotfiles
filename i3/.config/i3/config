@@ -49,7 +49,8 @@ bindsym Print exec --no-startup-id flameshot gui
 bindsym $mod+Return exec urxvt
 bindsym $mod+d exec "rofi -show drun"
 bindsym $mod+s exec --no-startup-id systemctl suspend
-bindsym $mod+shift+s exec --no-startup-id ~/.config/i3/scripts/power-menu.sh
+# Wait for key release so rofi can grab the keyboard.
+bindsym --release $mod+Shift+s exec --no-startup-id ~/.config/i3/scripts/power-menu.sh
 bindsym $mod+l exec --no-startup-id loginctl lock-session
 bindcode 232 exec --no-startup-id brightnessctl set 10%- && pkill -SIGRTMIN+9 i3blocks
 bindcode 233 exec --no-startup-id brightnessctl set +10% && pkill -SIGRTMIN+9 i3blocks
@@ -66,6 +67,7 @@ bindsym $mod+f fullscreen toggle
 bindsym $mod+q kill
 bindsym $mod+r reload
 bindsym $mod+n exec --no-startup-id ~/.config/i3/scripts/rename-workspace.sh
+bindsym $mod+c exec --no-startup-id ~/.config/i3/scripts/create-three-column-workspace.sh
 bindsym $mod+Shift+r restart
 
 # ── Layout ────────────────────────────────────────────────────────────────────────────────────────
