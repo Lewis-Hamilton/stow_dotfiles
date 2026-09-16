@@ -1,0 +1,8 @@
+[Unit]
+Description=Show battery health when the graphical session starts
+Wants=dunst.service
+After=dunst.service
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/notify-battery-health
