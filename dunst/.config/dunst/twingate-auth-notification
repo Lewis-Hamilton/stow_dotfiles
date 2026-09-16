@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+
+set -u
+
+if [[ ${1:-} != --worker ]]; then
+    resource=${DUNST_BODY%% - (*}
+    notification_id=${DUNST_ID:-}
+
+    [[ -n $resource && $notification_id =~ ^[0-9]+$ ]] || exit 0
+
+    # Run independently of Dunst. The fixed unit name also coalesces duplicate
+    # resource prompts while an authentication flow is already active.
+    /usr/bin/systemd-run --user --quiet --collect \
+        --unit=twingate-auth-notification \
+        "$0" --worker "$resource" "$notification_id"
+    exit 0
+fi
+
+resource=$2
+notification_id=$3
+action_shown=false
+
+# Console mode exposes the OAuth URL which the desktop notifier keeps inside
+# its broken click callback. Replace the original notification with one owned
+# by notify-send, whose action response is reliable under Dunst.
+while IFS= read -r line; do
+    if ! $action_shown && [[ $line =~ (https://[^[:space:]]+) ]]; then
+        auth_url=${BASH_REMATCH[1]}
+        selected_action=$(
+            /usr/bin/notify-send \
+                --app-name=twingate-auth-helper \
+                --urgency=critical \
+                --expire-time=60000 \
+                --replace-id="$notification_id" \
+                --action=authenticate=Authenticate \
+                "Twingate Client: Additional authentication required" \
+                "$resource"
+        )
+
+        if [[ $selected_action == authenticate ]]; then
+            /usr/bin/xdg-open "$auth_url" >/dev/null 2>&1 &
+        fi
+        action_shown=true
+    fi
+done < <(
+    /usr/bin/twingate auth --print-commands --disable-colors "$resource" 2>&1
+)

@@ -408,3 +408,10 @@
 [i3blocks-refresh]
     summary = "*"
     script = ~/.config/i3blocks/scripts/notifications/on-notify
+
+# The current Twingate notifier ignores its own D-Bus action. This rule must
+# follow i3blocks-refresh so its more-specific script is not overwritten.
+[twingate_auth]
+    appname = twingate-notifier
+    summary = "Twingate Client: Additional authentication required"
+    script = ~/.config/dunst/twingate-auth-notification
