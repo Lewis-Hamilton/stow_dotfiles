@@ -1,7 +1,9 @@
 [Unit]
 Description=Show battery health when the graphical session starts
 Wants=dunst.service
-After=dunst.service
+# Run after the session target, rather than letting its Wants= order us
+# before it: Dunst itself waits for graphical-session.target.
+After=i3-session.target dunst.service
 
 [Service]
 Type=oneshot
