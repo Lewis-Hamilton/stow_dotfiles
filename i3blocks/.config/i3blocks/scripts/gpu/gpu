@@ -65,4 +65,8 @@ fi
 
 printf -v padded_usage "%3s" "$formatted_usage"
 
-echo "<span color=\"$fan_color\">$padded_fan_speed </span><span color=\"$fan_color\" size='large'>󰈐</span> - <span color=\"$usage_color\" size='large'>󰓅</span><span color=\"$usage_color\"> $padded_usage</span><span size='large'> 󰖺 </span><span color=\"$temp_color\">$temperature°C </span><span color=\"$temp_color\" size='large'></span>"
+divider="<span color=\"#888888\">][</span>"
+front_divider="<span color=\"#888888\">[</span>"
+back_divider="<span color=\"#888888\">]</span>"
+
+echo "<span size='large'>󰖺$front_divider</span><span color=\"$usage_color\">$padded_usage</span><span color=\"$usage_color\" size='large'> 󰓅</span>$divider<span color=\"$temp_color\">$temperature°C </span><span color=\"$temp_color\" size='large'></span>$divider<span color=\"$fan_color\">$padded_fan_speed </span><span color=\"$fan_color\" size='large'>󰈐</span>$back_divider"
