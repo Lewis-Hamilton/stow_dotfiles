@@ -66,39 +66,9 @@ busiest_core_color=$(usage_color_for "$BUSIEST_CORE_USAGE")
 OUTPUT_VALUE=${CPU_USAGE}%
 BUSIEST_CORE_VALUE=${BUSIEST_CORE_USAGE}%
 
-# sensors is substantially more expensive than /proc/stat, so cache its
-# temperature and fan readings for 15 seconds.
-thermal_cache=$state_dir/cpu-thermal
-now=$(date +%s)
-thermal_cache_time=$(stat -c %Y "$thermal_cache" 2>/dev/null || echo 0)
-
-if [ ! -s "$thermal_cache" ] || [ $((now - thermal_cache_time)) -ge 15 ]; then
-    sensors_raw=$(sensors 2>/dev/null)
-
-    if grep -q "PECI Agent 0" <<< "$sensors_raw"; then
-        target_line=$(grep -m1 "PECI Agent 0" <<< "$sensors_raw")
-    else
-        target_line=$(grep -m1 'CPU:' <<< "$sensors_raw")
-    fi
-
-    temperature=$(awk -F '[+°]' '{print $2}' <<< "$target_line")
-    new_temperature=$(awk '{printf "%.0f", $1}' <<< "$temperature")
-    new_fan_speed=$(awk '$1 == "fan2:" {print $2; exit}' <<< "$sensors_raw")
-
-    [[ $new_temperature =~ ^[0-9]+$ ]] || new_temperature=ERR
-    [[ $new_fan_speed =~ ^[0-9]+$ ]] || new_fan_speed=ERR
-
-    thermal_cache_tmp=$state_dir/cpu-thermal.$$
-    printf '%s %s\n' "$new_temperature" "$new_fan_speed" > "$thermal_cache_tmp"
-    mv "$thermal_cache_tmp" "$thermal_cache"
-fi
-
-if [ -s "$thermal_cache" ]; then
-    read -r formatted_temperature fan_speed < "$thermal_cache"
-else
-    formatted_temperature=ERR
-    fan_speed=ERR
-fi
+# CPU Temperature and Fan Speed
+cpu_script_dir=$(dirname -- "${BASH_SOURCE[0]}")
+read -r formatted_temperature fan_speed < <("$cpu_script_dir/thermal")
 
 if [[ $formatted_temperature =~ ^[0-9]+$ ]] && [ "$formatted_temperature" -le 50 ]; then
     temp_color=$MY_GREEN

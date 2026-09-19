@@ -2,24 +2,20 @@
 
 source ~/.my_colors.sh
 
-# nvidia-smi ships only with the proprietary driver, so on nouveau - or on a
-# machine with no NVIDIA card at all - there is nothing to report. Hide the
-# block rather than render a permanently red row of zeros.
+# Hide block if no nvidia gpu
 command -v nvidia-smi >/dev/null 2>&1 || exit 0
 
 # Usage, Temperature, Fan Speed
 gpu_data=$(nvidia-smi --query-gpu=utilization.gpu,temperature.gpu,fan.speed --format=csv,noheader,nounits 2>/dev/null)
 [[ -z "$gpu_data" ]] && exit 0
-
 IFS=', ' read -r usage temperature fan_speed <<< "$gpu_data"
 
-# nvidia-smi prints [N/A] for anything a card does not expose - fan speed on
-# most mobile GPUs - so every field is checked before it reaches a comparison.
+# Make sure all values are numbers
 is_num() { [[ "$1" =~ ^[0-9]+$ ]]; }
+
 
 if ! is_num "$usage"; then
         usage_color=$MY_RED
-        formatted_usage="ERR"
 else
         formatted_usage="${usage}%"
         if [ "$usage" -le 50 ]; then
@@ -28,14 +24,17 @@ else
                 usage_color=$MY_YELLOW
         elif [ "$usage" -le 85 ]; then
                 usage_color=$MY_ORANGE
+        elif [ "$usage" -gt 99 ]; then
+                formatted_usage=""
+                usage_color=$MY_RED
         else
+                formatted_usage="ERR"
                 usage_color=$MY_RED
         fi
 fi
 
 if ! is_num "$temperature"; then
         temp_color=$MY_RED
-        temperature="ERR"
 else
         if [ "$temperature" -le 50 ]; then
                 temp_color=$MY_GREEN
