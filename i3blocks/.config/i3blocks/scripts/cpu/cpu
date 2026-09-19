@@ -2,66 +2,97 @@
 
 source ~/.my_colors.sh
 
-# CPU Usage
-CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | awk '{printf "%.0f", 100 - $8}')
-OUTPUT_VALUE=${CPU_USAGE}%
+# Compare stat between intervals
+state_dir=${XDG_RUNTIME_DIR:-/tmp}/i3blocks-$UID
+mkdir -p "$state_dir"
+chmod 700 "$state_dir"
 
-if [ "$CPU_USAGE" -le 50 ]; then
-        usage_color=$MY_GREEN
-elif [[ "$CPU_USAGE" -gt 50 && "$CPU_USAGE" -le 70 ]]; then
-        usage_color=$MY_YELLOW
-elif [[ "$CPU_USAGE" -gt 70 && "$CPU_USAGE" -le 85 ]]; then
-        usage_color=$MY_ORANGE
-elif [[ "$CPU_USAGE" -gt 85 && "$CPU_USAGE" -le 99 ]]; then
-        usage_color=$MY_RED
-elif [ "$CPU_USAGE" -gt 99 ]; then
-        OUTPUT_VALUE=""
-else
-        OUTPUT_VALUE="ERR"
-        usage_color=$MY_RED
+previous_stat=$state_dir/cpu-stat
+current_stat=$state_dir/cpu-stat.$$
+awk '/^cpu/ { print }' /proc/stat > "$current_stat"
+
+# Get first cpu usage before previous comparison exists
+if [ ! -s "$previous_stat" ]; then
+    mv "$current_stat" "$previous_stat"
+    sleep 0.2
+    current_stat=$state_dir/cpu-stat.$$
+    awk '/^cpu/ { print }' /proc/stat > "$current_stat"
 fi
+
+read -r CPU_USAGE BUSIEST_CORE_USAGE < <(
+    awk '
+        NR == FNR {
+            for (field = 2; field <= NF; field++) {
+                previous[$1, field] = $field
+            }
+            next
+        }
+        /^cpu/ {
+            total = 0
+            idle = 0
+            for (field = 2; field <= NF; field++) {
+                delta = $field - previous[$1, field]
+                total += delta
+                if (field == 5 || field == 6) idle += delta
+            }
+            usage = total > 0 ? 100 * (total - idle) / total : 0
+            usage = int(usage + 0.5)
+            if ($1 == "cpu") average = usage
+            else if (usage > busiest) busiest = usage
+        }
+        END { print average + 0, busiest + 0 }
+    ' "$previous_stat" "$current_stat"
+)
+mv "$current_stat" "$previous_stat"
+
+usage_color_for() {
+    local usage=$1
+    if [ "$usage" -le 50 ]; then
+        echo "$MY_GREEN"
+    elif [ "$usage" -le 70 ]; then
+        echo "$MY_YELLOW"
+    elif [ "$usage" -le 85 ]; then
+        echo "$MY_ORANGE"
+    else
+        echo "$MY_RED"
+    fi
+}
+
+usage_color=$(usage_color_for "$CPU_USAGE")
+busiest_core_color=$(usage_color_for "$BUSIEST_CORE_USAGE")
+OUTPUT_VALUE=${CPU_USAGE}%
+BUSIEST_CORE_VALUE=${BUSIEST_CORE_USAGE}%
 
 # CPU Temperature and Fan Speed
+cpu_script_dir=$(dirname -- "${BASH_SOURCE[0]}")
+read -r formatted_temperature fan_speed < <("$cpu_script_dir/thermal")
 
-# 1. Capture raw sensors data once
-sensors_raw=$(sensors)
-
-# 2. Extract the single best temperature line based on machine
-if echo "$sensors_raw" | grep -q "PECI Agent 0"; then
-    target_line=$(echo "$sensors_raw" | grep "PECI Agent 0" | head -n 1)
+if [[ $formatted_temperature =~ ^[0-9]+$ ]] && [ "$formatted_temperature" -le 50 ]; then
+    temp_color=$MY_GREEN
+elif [[ $formatted_temperature =~ ^[0-9]+$ ]] && [ "$formatted_temperature" -le 60 ]; then
+    temp_color=$MY_YELLOW
+elif [[ $formatted_temperature =~ ^[0-9]+$ ]] && [ "$formatted_temperature" -le 70 ]; then
+    temp_color=$MY_ORANGE
 else
-    target_line=$(echo "$sensors_raw" | grep 'CPU:' | head -n 1)
+    temp_color=$MY_RED
 fi
 
-# 3. Apply your exact extraction and rounding logic
-temperature=$(echo "$target_line" | awk -F '[+°]' '{print $2}')
-formatted_temperature=$(echo "$temperature" | awk '{printf "%.0f", $1}')
-fan_speed=$(echo "$sensors_raw" | grep "fan2:" | awk -F: '{print $2}' | awk '{print $1}')
-
-[[ -z "$fan_speed" ]] && fan_speed="ERR"
-[[ -z "$formatted_temperature" ]] && formatted_temperature="ERR"
-
-if [ "$formatted_temperature" -le 50 ]; then
-        temp_color=$MY_GREEN
-elif [[ "$formatted_temperature" -gt 50 && "$formatted_temperature" -le 60 ]]; then
-        temp_color=$MY_YELLOW
-elif [[ "$formatted_temperature" -gt 60 && "$formatted_temperature" -le 70 ]]; then
-        temp_color=$MY_ORANGE
-else
-        temp_color=$MY_RED
-fi
-
-if [ "$fan_speed" -le 800 ]; then
+if [[ $fan_speed =~ ^[0-9]+$ ]] && [ "$fan_speed" -le 800 ]; then
     fan_color=$MY_GREEN
-elif [[ "$fan_speed" -gt 800 && "$fan_speed" -le 1600 ]]; then
+elif [[ $fan_speed =~ ^[0-9]+$ ]] && [ "$fan_speed" -le 1600 ]; then
     fan_color=$MY_YELLOW
-elif [[ "$fan_speed" -gt 1600 && "$fan_speed" -le 2400 ]]; then
+elif [[ $fan_speed =~ ^[0-9]+$ ]] && [ "$fan_speed" -le 2400 ]; then
     fan_color=$MY_ORANGE
 else
     fan_color=$MY_RED
 fi
 
 printf -v padded_usage "%3s" "$OUTPUT_VALUE"
-printf -v padded_fan_speed "%04d" "$fan_speed" 
+printf -v padded_busiest_core "%4s" "$BUSIEST_CORE_VALUE"
+if [[ $fan_speed =~ ^[0-9]+$ ]]; then
+    printf -v padded_fan_speed "%04d" "$fan_speed"
+else
+    padded_fan_speed=$fan_speed
+fi
 
-echo "<span color=\"$fan_color\">$padded_fan_speed </span><span color=\"$fan_color\" size='large'>󰈐</span> - <span color=\"$usage_color\" size='large'>󰓅</span><span color=\"$usage_color\"> $padded_usage</span><span size='large'> 󰟀 </span><span color=\"$temp_color\">$formatted_temperature°C </span><span color=\"$temp_color\" size='large'></span>"
+echo "<span color=\"$fan_color\">$padded_fan_speed </span><span color=\"$fan_color\" size='large'>󰈐</span> - <span color=\"$usage_color\" size='large'>󰓅</span><span color=\"$usage_color\"> $padded_usage</span><span color=\"$busiest_core_color\"> ↑$padded_busiest_core</span><span size='large'> 󰟀 </span><span color=\"$temp_color\">$formatted_temperature°C </span><span color=\"$temp_color\" size='large'></span>"
