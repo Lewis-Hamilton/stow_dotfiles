@@ -39,10 +39,3 @@ printf '%s %s\n' "$formatted_temperature" "$fan_speed" > "$cache_tmp"
 mv "$cache_tmp" "$cache_file"
 
 printf '%s %s\n' "$formatted_temperature" "$fan_speed"
-
-
-
-
-
-
-
