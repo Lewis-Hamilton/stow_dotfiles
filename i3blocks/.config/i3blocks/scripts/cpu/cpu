@@ -95,4 +95,9 @@ else
     padded_fan_speed=$fan_speed
 fi
 
-echo "<span color=\"$fan_color\">$padded_fan_speed </span><span color=\"$fan_color\" size='large'>󰈐</span> - <span color=\"$usage_color\" size='large'>󰓅</span><span color=\"$usage_color\"> $padded_usage</span><span color=\"$busiest_core_color\"> ↑$padded_busiest_core</span><span size='large'> 󰟀 </span><span color=\"$temp_color\">$formatted_temperature°C </span><span color=\"$temp_color\" size='large'></span>"
+divider="<span color=\"#888888\">][</span>"
+front_divider="<span color=\"#888888\">[</span>"
+back_divider="<span color=\"#888888\">]</span>"
+
+
+echo "<span size='large'>󰟀$front_divider</span><span color=\"$busiest_core_color\">$padded_busiest_core ↑</span>$divider<span color=\"$usage_color\">$padded_usage</span><span color=\"$usage_color\" size='large'> 󰓅</span>$divider<span color=\"$temp_color\">$formatted_temperature°C </span><span color=\"$temp_color\" size='large'></span>$divider<span color=\"$fan_color\">$padded_fan_speed </span><span color=\"$fan_color\" size='large'>󰈐</span>$back_divider"
