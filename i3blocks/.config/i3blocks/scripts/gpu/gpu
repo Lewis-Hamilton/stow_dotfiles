@@ -2,6 +2,9 @@
 
 source ~/.my_colors.sh
 
+# Hide block if no nvidia gpu
+command -v nvidia-smi >/dev/null 2>&1 || exit 0
+
 # Usage, Temperature, Fan Speed
 gpu_data=$(nvidia-smi --query-gpu=utilization.gpu,temperature.gpu,fan.speed --format=csv,noheader,nounits 2>/dev/null)
 IFS=', ' read -r usage temperature fan_speed <<< "$gpu_data"
