@@ -1,0 +1,48 @@
+#!/bin/bash
+
+cache_dir=${XDG_RUNTIME_DIR:-/tmp}/i3blocks-$UID
+cache_file=$cache_dir/cpu-thermal
+cache_lifetime=15
+
+mkdir -p "$cache_dir"
+chmod 700 "$cache_dir"
+
+now=$(date +%s)
+cache_time=$(stat -c %Y "$cache_file" 2>/dev/null || echo 0)
+
+# Return previous data if it is less than 15 seconds old.
+if [ -s "$cache_file" ] && [ $((now - cache_time)) -lt "$cache_lifetime" ];then
+    cat "$cache_file"
+    exit 0
+fi
+
+# Capture raw sensors data once
+sensors_raw=$(sensors 2>/dev/null)
+
+# Get the best temperature based on machine
+if grep -q "PECI Agent 0" <<< "$sensors_raw"; then
+    target_line=$(grep -m1 "PECI Agent 0" <<< "$sensors_raw")
+    else
+    target_line=$(grep -m1 'CPU:' <<< "$sensors_raw")
+fi
+
+temperature=$(awk -F '[+°]' '{print $2}' <<< "$target_line")
+formatted_temperature=$(awk '{printf "%.0f", $1}' <<< "$temperature")
+fan_speed=$(awk '$1 == "fan2:" {print $2; exit}' <<< "$sensors_raw") 
+
+[[ -z "$formatted_temperature" ]] && formatted_temperature=ERR
+[[ -z "$fan_speed" ]] && fan_speed="ERR" 
+
+# Write atomically so the CPU script never reads a partial cache entry.
+cache_tmp=$cache_file.$$
+printf '%s %s\n' "$formatted_temperature" "$fan_speed" > "$cache_tmp"
+mv "$cache_tmp" "$cache_file"
+
+printf '%s %s\n' "$formatted_temperature" "$fan_speed"
+
+
+
+
+
+
+

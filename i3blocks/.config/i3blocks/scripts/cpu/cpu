@@ -22,24 +22,8 @@ else
 fi
 
 # CPU Temperature and Fan Speed
-
-# 1. Capture raw sensors data once
-sensors_raw=$(sensors)
-
-# 2. Extract the single best temperature line based on machine
-if echo "$sensors_raw" | grep -q "PECI Agent 0"; then
-    target_line=$(echo "$sensors_raw" | grep "PECI Agent 0" | head -n 1)
-else
-    target_line=$(echo "$sensors_raw" | grep 'CPU:' | head -n 1)
-fi
-
-# 3. Apply your exact extraction and rounding logic
-temperature=$(echo "$target_line" | awk -F '[+°]' '{print $2}')
-formatted_temperature=$(echo "$temperature" | awk '{printf "%.0f", $1}')
-fan_speed=$(echo "$sensors_raw" | grep "fan2:" | awk -F: '{print $2}' | awk '{print $1}')
-
-[[ -z "$fan_speed" ]] && fan_speed="ERR"
-[[ -z "$formatted_temperature" ]] && formatted_temperature="ERR"
+cpu_script_dir=$(dirname -- "${BASH_SOURCE[0]}")
+read -r formatted_temperature fan_speed < <("$cpu_script_dir/thermal")
 
 if [ "$formatted_temperature" -le 50 ]; then
         temp_color=$MY_GREEN
