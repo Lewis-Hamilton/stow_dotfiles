@@ -8,21 +8,28 @@ command -v nvidia-smi >/dev/null 2>&1 || exit 0
 # Usage, Temperature, Fan Speed
 gpu_data=$(nvidia-smi --query-gpu=utilization.gpu,temperature.gpu,fan.speed --format=csv,noheader,nounits 2>/dev/null)
 IFS=', ' read -r usage temperature fan_speed <<< "$gpu_data"
-formatted_usage=${usage}%
 
-if [ "$usage" -le 50 ]; then
-        usage_color=$MY_GREEN
-elif [[ "$usage" -gt 50 && "$usage" -le 70 ]]; then
-        usage_color=$MY_YELLOW
-elif [[ "$usage" -gt 70 && "$usage" -le 85 ]]; then
-        usage_color=$MY_ORANGE
-elif [[ "$usage" -gt 85 && "$usage" -le 99 ]]; then
+# Make sure all values are numbers
+is_num() { [[ "$1" =~ ^[0-9]+$ ]]; }
+
+
+if ! is_num "$usage"; then
         usage_color=$MY_RED
-elif [ "$usage" -gt 99 ]; then
-        OUTPUT_VALUE=""
 else
-        OUTPUT_VALUE="ERR"
-        usage_color=$MY_RED
+        formatted_usage="${usage}%"
+        if [ "$usage" -le 50 ]; then
+                usage_color=$MY_GREEN
+        elif [ "$usage" -le 70 ]; then
+                usage_color=$MY_YELLOW
+        elif [ "$usage" -le 85 ]; then
+                usage_color=$MY_ORANGE
+        elif [ "$usage" -gt 99 ]; then
+                formatted_usage=""
+                usage_color=$MY_RED
+        else
+                formatted_usage="ERR"
+                usage_color=$MY_RED
+        fi
 fi
 
 if [ "$temperature" -le 50 ]; then
