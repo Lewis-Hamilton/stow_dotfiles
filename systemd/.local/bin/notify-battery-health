@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+print_only=false
+if [[ ${1-} == --print ]]; then
+    print_only=true
+fi
+
+found_battery=false
+history_file="${XDG_STATE_HOME:-$HOME/.local/state}/battery-health/history.tsv"
+
+log_health() {
+    mkdir -p -- "${history_file%/*}" || return
+    (
+        flock -x 9 || exit
+        if [[ ! -s $history_file ]]; then
+            printf 'timestamp\tbattery\thealth_percent\tfull_capacity\tdesign_capacity\tcapacity_unit\n' >&9 || exit
+        fi
+        printf '%s\t%s\t%s\t%s\t%s\t%s\n' \
+            "$(date --iso-8601=seconds)" "$battery_name" "$health_percent" \
+            "$full_capacity" "$design_capacity" "$capacity_unit" >&9
+    ) 9>>"$history_file"
+}
+
+for battery_path in /sys/class/power_supply/*; do
+    [[ -r $battery_path/type ]] || continue
+    [[ $(<"$battery_path/type") == Battery ]] || continue
+
+    if [[ -r $battery_path/charge_full && -r $battery_path/charge_full_design ]]; then
+        full_capacity=$(<"$battery_path/charge_full")
+        design_capacity=$(<"$battery_path/charge_full_design")
+        capacity_unit=uAh
+    elif [[ -r $battery_path/energy_full && -r $battery_path/energy_full_design ]]; then
+        full_capacity=$(<"$battery_path/energy_full")
+        design_capacity=$(<"$battery_path/energy_full_design")
+        capacity_unit=uWh
+    else
+        continue
+    fi
+
+    [[ $full_capacity =~ ^[0-9]+$ ]] || continue
+    [[ $design_capacity =~ ^[1-9][0-9]*$ ]] || continue
+
+    found_battery=true
+    health_percent=$((
+        (full_capacity * 100 + design_capacity / 2) / design_capacity
+    ))
+    battery_name=${battery_path##*/}
+    model=$battery_name
+    if [[ -r $battery_path/model_name ]]; then
+        model=$(<"$battery_path/model_name")
+        model=${model:-$battery_name}
+    fi
+    title="Battery health: ${health_percent}%"
+    body="${model}: full-charge capacity compared with original design capacity."
+
+    if [[ $print_only == true ]]; then
+        printf '%s\n%s\n' "$title" "$body"
+    else
+        if ! log_health; then
+            printf 'Could not append battery health to %s\n' "$history_file" >&2
+        fi
+        notify-send \
+            --app-name='Battery health' \
+            --icon=battery-good-symbolic \
+            --urgency=normal \
+            --expire-time=10000 \
+            --hint="int:value:$health_percent" \
+            "$title" \
+            "$body"
+    fi
+done
+
+if [[ $found_battery == false && $print_only == true ]]; then
+    echo 'No battery with health data was found.' >&2
+    exit 1
+fi

@@ -1,0 +1,8 @@
+[Unit]
+Description=Show battery health notification on startup
+Wants=dunst.service
+After=i3-session.target dunst.service
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/notify-battery-health
