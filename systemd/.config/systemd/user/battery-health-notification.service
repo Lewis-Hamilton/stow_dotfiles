@@ -1,7 +1,7 @@
 [Unit]
-Description=Show battery health when the graphical session starts
+Description=Show battery health notification on startup
 Wants=dunst.service
-After=dunst.service
+After=i3-session.target dunst.service
 
 [Service]
 Type=oneshot

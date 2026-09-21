@@ -4,6 +4,12 @@ GNU Stow packages and Fedora workstation setup for this account. Run
 `~/.mega_setup.sh` after cloning and stowing `my_os` to install the normal
 user-level setup.
 
+## Battery health
+
+At startup, `~/.local/bin/notify-battery-health` displays the current battery
+health and records it in `~/.local/state/battery-health/history.tsv`. Run the
+script manually to check and record the current health at any time.
+
 ## Laptop suspend, then hibernate
 
 The hibernation setup is a system-level addition and is not installed by the
