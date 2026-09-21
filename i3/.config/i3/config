@@ -127,11 +127,13 @@ bindsym $mod+Shift+g move container to workspace number $ws11
 # ── Matches any Steam app ID (e.g., steam_app_730, steam_app_570, etc.)
 # ── Hardcoded cs2 to open in game workspace because general steam_app no worky
 # ── Open Slack in Home workspace
+# ── Open 1Password in Utilities workspace
 workspace $ws1 output primary
 workspace $ws11 output primary
 for_window [class="^steam_app_"] move to workspace $ws11
 assign [class="(?i)cs2"] $ws11
 for_window [class="slack"] move to workspace $ws1
+for_window [class="com.onepassword.OnePassword"] move to workspace $ws10
 
 
 # Temporary line to show where I'm at.
@@ -150,8 +152,8 @@ exec --no-startup-id nm-applet
 
 # Use wpctl to adjust volume in Pipewire.
 set $refresh_i3status killall -SIGUSR1 i3status
-bindsym XF86AudioRaiseVolume exec --no-startup-id wpctl set-volume @DEFAULT_AUDIO_SINK@ 10%+ && pkill -SIGRTMIN+10 i3blocks
-bindsym XF86AudioLowerVolume exec --no-startup-id wpctl set-volume @DEFAULT_AUDIO_SINK@ 10%- && pkill -SIGRTMIN+10 i3blocks
+bindsym XF86AudioRaiseVolume exec --no-startup-id wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+ && pkill -SIGRTMIN+10 i3blocks
+bindsym XF86AudioLowerVolume exec --no-startup-id wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%- && pkill -SIGRTMIN+10 i3blocks
 bindsym XF86AudioMute exec --no-startup-id wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle && pkill -SIGRTMIN+10 i3blocks
 # add a mic icon here thats either green or red if muted or not replace with wpctl alternative.
 bindsym XF86AudioMicMute exec --no-startup-id pactl set-source-mute @DEFAULT_SOURCE@ toggle && $refresh_i3status
