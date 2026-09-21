@@ -1,6 +1,8 @@
 #!/bin/bash
 
-STATUS=$(wpctl get-volume @DEFAULT_AUDIO_SINK@)
+until STATUS=$(wpctl get-volume @DEFAULT_AUDIO_SINK@); do
+    sleep 1
+done
 
 if echo "$STATUS" | grep -q '\[MUTED\]'; then
     volume="MUTE"
