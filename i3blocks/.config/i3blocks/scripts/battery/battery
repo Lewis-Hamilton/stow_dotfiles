@@ -16,6 +16,7 @@ AC_DIR="/sys/class/power_supply/ACAD"
 # Read kernel stats directly (blazing fast, no parsing needed)
 percent=$(cat "$SYS_DIR/capacity")
 status=$(cat "$SYS_DIR/status")
+[[ $percent -gt 100 ]] && percent=100
 
 # 1. Determine the Icon based on Status & Percentage
 if [[ "$status" == "Charging" || "$status" == "Full" ]]; then
