@@ -29,11 +29,13 @@ exec --no-startup-id gsettings set org.gnome.desktop.interface color-scheme 'pre
 # ── Compositor
 # ── Script to watch for Slack focused for notifications
 # ── Set wallpaper ever time so it updates with monitors
+# ── Auto-lock script
 exec_always --no-startup-id ~/.config/i3/scripts/watch-keyboards.sh
 exec_always --no-startup-id ~/.config/i3/scripts/configure-touchpad.sh
 exec_always --no-startup-id ~/.config/i3/scripts/start-compositor.sh
 exec_always --no-startup-id ~/.config/i3/scripts/slack-dunst-focus.sh
 exec_always --no-startup-id feh --bg-fill /usr/share/backgrounds/speed.png
+exec_always --no-startup-id ~/.config/i3/scripts/start-locker.sh
 
 # ────────────────────────────────────────────────────────────────────────────────────── Keybinds ──
 # ── Basic System Functions ────────────────────────────────────────────────────────────────────────
@@ -98,13 +100,13 @@ set $ws11 "11:Game"
 
 # ── Switch Keybinds ───────────────────────────────────────────────────────────────────────────────
 bindsym $mod+1 workspace number $ws1
-bindsym $mod+2 workspace number $ws2
-bindsym $mod+3 workspace number $ws3
-bindsym $mod+4 workspace number $ws4
-bindsym $mod+5 workspace number $ws5
-bindsym $mod+6 workspace number $ws6
-bindsym $mod+7 workspace number $ws7
-bindsym $mod+8 workspace number $ws8
+bindsym $mod+2 exec --no-startup-id ~/.config/i3/scripts/open-workspace.sh 2 $ws2
+bindsym $mod+3 exec --no-startup-id ~/.config/i3/scripts/open-workspace.sh 3 $ws3
+bindsym $mod+4 exec --no-startup-id ~/.config/i3/scripts/open-workspace.sh 4 $ws4
+bindsym $mod+5 exec --no-startup-id ~/.config/i3/scripts/open-workspace.sh 5 $ws5
+bindsym $mod+6 exec --no-startup-id ~/.config/i3/scripts/open-workspace.sh 6 $ws6
+bindsym $mod+7 exec --no-startup-id ~/.config/i3/scripts/open-workspace.sh 7 $ws7
+bindsym $mod+8 exec --no-startup-id ~/.config/i3/scripts/open-workspace.sh 8 $ws8
 bindsym $mod+9 workspace number $ws9
 bindsym $mod+0 workspace number $ws10
 bindsym $mod+g workspace number $ws11
@@ -142,10 +144,6 @@ for_window [class="com.onepassword.OnePassword"] move to workspace $ws10
 
 # The combination of xss-lock, nm-applet and pactl is a popular choice, so
 # they are included here as an example. Modify as you see fit.
-
-# xss-lock grabs a logind suspend inhibit lock and will use i3lock to lock the
-# screen before suspend. Use loginctl lock-session to lock your screen.
-exec_always --no-startup-id pkill -x xss-lock; xss-lock --transfer-sleep-lock -- i3lock -n -c 000000
 
 # NetworkManager is the most popular way to manage wireless networks on Linux,
 # and nm-applet is a desktop environment-independent system tray GUI for it.
