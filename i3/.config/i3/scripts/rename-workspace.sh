@@ -13,6 +13,22 @@ num="${name%%:*}"      # "2"          (everything before the first colon)
 disp="${name#*:}"      # "󰬻 auth"     (everything after the first colon)
 icon="${disp%% *}"     # "󰬻"          (icon = up to the first space; blank labels have none)
 
-# Result becomes:  number:<icon> <typed name>
-# -l caps the label length to keep workspace buttons from getting too wide.
-exec i3-input -l 12 -F "rename workspace to \"${num}:${icon} %s\"" -P "Rename: "
+# Keep the prompt compact and centered, with no empty results list below it.
+if ! label=$(rofi -dmenu -p 'Rename:' -theme-str '
+    window { location: center; anchor: center; width: 24em; border: 3px; border-color: #FFFFFF; }
+    mainbox { children: [inputbar]; }
+' < /dev/null); then
+    exit 0
+fi
+
+# Cap the label length to keep workspace buttons from getting too wide.
+label=${label:0:12}
+target="${num}:${icon}"
+if [[ -n $label ]]; then
+    target+=" $label"
+fi
+
+# Quote the target for i3's command parser.
+target=${target//\\/\\\\}
+target=${target//\"/\\\"}
+i3-msg "rename workspace to \"$target\""
