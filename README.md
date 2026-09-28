@@ -68,7 +68,22 @@ Add this line to `/etc/fstab` exactly once:
 
 The low priority keeps Fedora's zram swap preferred during normal use.
 
-### 3. Configure resume and rebuild the initramfs
+### 3. Label the swap subvolume for SELinux
+
+Give the new Btrfs subvolume and swap file persistent SELinux labels:
+
+```bash
+sudo semanage fcontext -a -t swapfile_t '/swap(/.*)?'
+sudo restorecon -Rv /swap
+sudo ls -ldZ /swap /swap/hibernate.swap
+```
+
+Both paths should show `swapfile_t`. Without this step, `/swap` can be labeled
+`unlabeled_t`; SELinux then prevents `systemd-logind` from searching the
+directory, and a lid close falls back to regular suspend. See the
+[Fedora SELinux hibernation bug](https://bugzilla.redhat.com/show_bug.cgi?id=2468532).
+
+### 4. Configure resume and rebuild the initramfs
 
 ```bash
 hibernate_resume_device=$(findmnt -no SOURCE /)
@@ -90,7 +105,7 @@ Use `btrfs inspect-internal map-swapfile`; the offset reported by `filefrag` is
 not the correct Btrfs resume offset. See the
 [Btrfs hibernation documentation](https://btrfs.readthedocs.io/en/latest/ch-swapfile.html).
 
-### 4. Configure lid handling and the 12-hour fallback
+### 5. Configure lid handling and the 12-hour fallback
 
 Create `/etc/systemd/logind.conf.d/60-lid-suspend-then-hibernate.conf`:
 
@@ -111,7 +126,7 @@ HibernateOnACPower=no
 The fixed timer is used because ACPI battery alarms are firmware-dependent and
 did not wake the Dell XPS 15 9520 reliably.
 
-### 5. Reboot, verify, and test
+### 6. Reboot, verify, and test
 
 Reboot before relying on hibernation. Then verify:
 
@@ -121,7 +136,13 @@ systemd-analyze cat-config systemd/logind.conf
 systemd-analyze cat-config systemd/sleep.conf
 sudo grubby --info=ALL
 sudo lsinitrd -m "/boot/initramfs-$(uname -r).img" | grep resume
+sudo ls -ldZ /swap /swap/hibernate.swap
+busctl --system call org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager CanSuspendThenHibernate
 ```
+
+Both SELinux labels should be `swapfile_t`, and the `busctl` call should return
+`s "yes"`. This checks that systemd accepts `suspend-then-hibernate`; it does not
+test whether the laptop can resume from a hibernation image.
 
 Save open work before the first test, disconnect docks and AC power, then run:
 
@@ -136,5 +157,6 @@ after direct hibernation succeeds should `suspend-then-hibernate` be trusted.
 
 Remove the two systemd drop-ins, remove the resume arguments with `grubby`, and
 rebuild the initramfs. Then run `swapoff /swap/hibernate.swap`, remove its
-`/etc/fstab` entry, and delete the swap file. Reboot to restore Fedora's default
-lid behavior.
+`/etc/fstab` entry, and delete the swap file. Remove the local SELinux rule with
+`sudo semanage fcontext -d '/swap(/.*)?'`. Reboot to restore Fedora's default lid
+behavior.
