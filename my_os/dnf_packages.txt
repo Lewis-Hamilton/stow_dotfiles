@@ -57,6 +57,7 @@ vim-enhanced
 flatpak
 stow
 Thunar
+gvfs-smb
 
 # ── Applications ───────────────────────────────────────────────────────────
 # These shouldn't be installed as flatpaks, can't be sandboxed
