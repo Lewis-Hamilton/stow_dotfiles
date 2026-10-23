@@ -36,6 +36,9 @@ URxvt*cursorUnderline: true
 !Extensions
 URxvt.perl-ext-common: default, selection-to-clipboard
 
+!Fix multiline paste
+URxvt.enableBracketedPaste: true
+
 !Fix Copy Paste
 ! These didnt work, the above extension works for selecting
 !URxvt.keysym.Shift-Control-V: eval:paste_clipboard
