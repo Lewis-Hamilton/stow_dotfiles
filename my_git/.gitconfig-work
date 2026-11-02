@@ -1,8 +1,13 @@
 [user]
 	name = Lewis
 	email = lewis.hamilton@acremaps.com
+	signingkey = ~/.ssh/id_ed25519.pub
 
 [alias]
 	# Work override: delete local branches whose upstream is gone (merged & remote-pruned).
 	trash = !git fetch --prune && git branch -vv | awk '/: gone]/ {print $1}' | xargs -r -n1 git branch -D
 	based = "!f() { branch=$(git rev-parse --verify origin/main >/dev/null 2>&1 && echo main || echo master); git rebase --onto \"origin/$branch\" \"$1\"; }; f"
+[gpg]
+	format = ssh
+[commit]
+	gpgsign = true
