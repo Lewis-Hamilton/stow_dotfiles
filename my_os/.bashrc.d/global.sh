@@ -6,4 +6,4 @@ DEFAULT="\[\e[0m\]"
 export PS1="${DEFAULT}[${MY_ORANGE}\u@\h \W${DEFAULT}]\$ ${DEFAULT}"
 
 # --- My Aliases ---
-alias code='flatpak run com.vscodium.codium -n '
+alias code='flatpak run com.vscodium.codium -n >/dev/null 2>&1'
