@@ -126,6 +126,19 @@ HibernateOnACPower=no
 The fixed timer is used because ACPI battery alarms are firmware-dependent and
 did not wake the Dell XPS 15 9520 reliably.
 
+The `systemd` Stow package also provides a Dunst notification after a successful
+hibernation resume. Enable its user timer with:
+
+```bash
+systemctl --user daemon-reload
+systemctl --user enable --now hibernation-notification.timer
+```
+
+The notification reports the hibernation time and the systemd policy that
+requested it. The timer runs while the user session is awake and does not wake
+the laptop. It records the latest existing event on first activation so an old
+hibernation is not reported as new.
+
 ### 6. Reboot, verify, and test
 
 Reboot before relying on hibernation. Then verify:

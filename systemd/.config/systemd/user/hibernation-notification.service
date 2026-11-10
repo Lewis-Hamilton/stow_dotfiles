@@ -1,0 +1,8 @@
+[Unit]
+Description=Show the last hibernation after resume
+Wants=dunst.service
+After=i3-session.target dunst.service
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/notify-hibernation
