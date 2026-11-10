@@ -63,6 +63,34 @@ busiest_core_color=$(usage_color_for "$BUSIEST_CORE_USAGE")
 OUTPUT_VALUE=${CPU_USAGE}%
 BUSIEST_CORE_VALUE=${BUSIEST_CORE_USAGE}%
 
+# Show the fastest current core. This stays meaningful on hybrid CPUs where
+# idle cores may sit at their minimum frequency while active cores boost.
+frequency_files=(/sys/devices/system/cpu/cpufreq/policy*/scaling_cur_freq)
+if [ -e "${frequency_files[0]}" ]; then
+    max_frequency_khz=$(awk '
+        $1 > fastest { fastest = $1 }
+        END { print fastest + 0 }
+    ' "${frequency_files[@]}" 2>/dev/null)
+
+    frequency_tenths=$(((max_frequency_khz + 50000) / 100000))
+    formatted_frequency=$((frequency_tenths / 10)).$((frequency_tenths % 10))GHz
+
+    # A low clock is normal while idle. Highlight it only when the CPU is also
+    # busy, which catches the 400 MHz power/firmware throttle seen in meetings.
+    if [ "$max_frequency_khz" -le 600000 ] && \
+        { [ "$CPU_USAGE" -ge 10 ] || [ "$BUSIEST_CORE_USAGE" -ge 25 ]; }; then
+        frequency_color=$MY_RED
+    elif [ "$max_frequency_khz" -le 1200000 ] && \
+        { [ "$CPU_USAGE" -ge 20 ] || [ "$BUSIEST_CORE_USAGE" -ge 50 ]; }; then
+        frequency_color=$MY_ORANGE
+    else
+        frequency_color=$MY_GREEN
+    fi
+else
+    formatted_frequency="n/a"
+    frequency_color=$MY_RED
+fi
+
 # CPU Temperature and Fan Speed
 cpu_script_dir=$(dirname -- "${BASH_SOURCE[0]}")
 read -r formatted_temperature fan_speed < <("$cpu_script_dir/thermal")
@@ -100,4 +128,4 @@ front_divider="<span color=\"#888888\">[</span>"
 back_divider="<span color=\"#888888\">]</span>"
 
 
-echo "<span size='large'>󰟀$front_divider</span><span color=\"$busiest_core_color\">$padded_busiest_core ↑</span>$divider<span color=\"$usage_color\">$padded_usage</span><span color=\"$usage_color\" size='large'> 󰓅</span>$divider<span color=\"$temp_color\">$formatted_temperature°C </span><span color=\"$temp_color\" size='large'></span>$divider<span color=\"$fan_color\">$padded_fan_speed </span><span color=\"$fan_color\" size='large'>󰈐</span>$back_divider"
+echo "<span size='large'>󰟀$front_divider</span><span color=\"$busiest_core_color\">$padded_busiest_core ↑</span>$divider<span color=\"$usage_color\">$padded_usage</span><span color=\"$usage_color\" size='large'> 󰓅</span>$divider<span color=\"$frequency_color\">$formatted_frequency</span>$divider<span color=\"$temp_color\">$formatted_temperature°C </span><span color=\"$temp_color\" size='large'></span>$divider<span color=\"$fan_color\">$padded_fan_speed </span><span color=\"$fan_color\" size='large'>󰈐</span>$back_divider"
