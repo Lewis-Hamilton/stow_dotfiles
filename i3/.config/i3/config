@@ -67,6 +67,7 @@ bindcode 233 exec --no-startup-id brightnessctl set +10% && pkill -SIGRTMIN+9 i3
 set $mod Mod4
 bindsym $mod+f fullscreen toggle
 bindsym $mod+q kill
+bindsym $mod+Shift+q exec --no-startup-id ~/.config/i3/scripts/kill-focused-process.sh
 bindsym $mod+r reload
 bindsym $mod+n exec --no-startup-id ~/.config/i3/scripts/rename-workspace.sh
 bindsym $mod+c exec --no-startup-id ~/.config/i3/scripts/create-three-column-workspace.sh
