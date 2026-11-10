@@ -278,6 +278,8 @@ client.focused #ffffff #ffffff #ffffff #ffffff #ffffff
 
 bar {
   position top
+  # Application icons live in the collapsible tray below.
+  tray_output none
   strip_workspace_name no
   strip_workspace_numbers yes
   workspace_min_width 125
@@ -293,7 +295,7 @@ bar {
     urgent_workspace #ffffff #e22c3c #ffffff
     binding_mode       #2f343a #900000 #ffffff
   }
-  status_command SCRIPT_DIR=~/.config/i3blocks/scripts i3blocks
+  status_command SCRIPT_DIR=~/.config/i3blocks/scripts i3blocks -c ~/.config/i3blocks/config
   
   # Disabling Scolling and clicking through workspaces
   # Want to force myself to use keybinds
@@ -302,4 +304,21 @@ bar {
   bindsym button1 nop
   bindsym button2 nop
   bindsym button3 nop
+}
+
+# The rightmost i3blocks arrow reveals this tray row on the primary display.
+# Keep the tray manager alive while hidden so applications retain their icons.
+# i3 sorts dock windows by bar ID: bar-1 stays below the main bar-0.
+bar {
+  id bar-1
+  output primary
+  position top
+  mode invisible
+  tray_output primary
+  workspace_buttons no
+  binding_mode_indicator no
+  colors {
+    background #000000
+    statusline #ffffff
+  }
 }

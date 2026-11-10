@@ -109,6 +109,12 @@ markup=pango
 command=$SCRIPT_DIR/battery/battery
 interval=30
 
+# Click to show/hide the application tray row.
+[tray]
+command=$SCRIPT_DIR/tray/tray
+interval=5
+separator=false
+
 # Generic media player support
 #
 # This displays "ARTIST - SONG" if a music is playing.

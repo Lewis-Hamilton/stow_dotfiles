@@ -1,0 +1,33 @@
+#!/usr/bin/env python3
+"""Toggle the dedicated i3 tray bar without restarting its tray manager."""
+
+import json
+import os
+import subprocess
+import sys
+
+BAR_ID = "bar-1"
+
+
+def i3(*args):
+    result = subprocess.run(
+        ["i3-msg", *args], check=True, capture_output=True, text=True
+    )
+    return json.loads(result.stdout)
+
+
+try:
+    config = i3("-t", "get_bar_config", BAR_ID)
+    visible = config["mode"] == "dock"
+    if os.environ.get("BLOCK_BUTTON") == "1":
+        mode = "invisible" if visible else "dock"
+        reply = i3(f"bar mode {mode} {BAR_ID}")
+        if not all(item.get("success") for item in reply):
+            raise RuntimeError(f"Tray toggle failed: {reply}")
+        visible = not visible
+    # One space on the left; a space plus a thin space on the right.
+    # Padding belongs to the block, so the whole area is clickable.
+    print(f" {'▲' if visible else '▼'} \u2009")
+except (OSError, subprocess.CalledProcessError, ValueError, KeyError, RuntimeError) as error:
+    print(f"Application tray: {error}", file=sys.stderr)
+    print("!")
