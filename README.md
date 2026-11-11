@@ -37,6 +37,19 @@ mask that system service with `sudo systemctl mask --now autorandr.service`.
 To revert, stop `i3-display-watch.service` and run
 `sudo systemctl unmask autorandr.service`.
 
+## SSH key migration
+
+The i3 session uses GNOME Keyring's SSH agent, and LightDM unlocks the login
+keyring through PAM. When migrating SSH keys, copy both the private key and
+its matching `.pub` file into `~/.ssh`; the agent discovers keys through their
+public companion files. Neither file belongs in this repository.
+
+If the public file is missing, recreate it with `ssh-keygen -y -f
+~/.ssh/id_ed25519 > ~/.ssh/id_ed25519.pub` (enter the SSH key passphrase when
+requested). On first use, save the passphrase using the keyring dialog's
+automatic-unlock option. Future password-based logins unlock it through the
+login keyring; a new machine needs this one-time enrollment too.
+
 ## Status bar layout
 
 The clock and notifications are centered automatically on the primary active
