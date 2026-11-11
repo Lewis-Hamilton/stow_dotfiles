@@ -3,3 +3,4 @@ Description=i3 session
 BindsTo=graphical-session.target
 Before=graphical-session.target
 Wants=battery-health-notification.service
+Wants=i3-display-watch.service

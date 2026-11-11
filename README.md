@@ -6,22 +6,36 @@ user-level setup.
 
 ## Display profiles and scaling
 
-Autorandr matches displays by their EDID and switches profiles at login and
-on monitor hotplug. The ThinkPad P14s Gen 5 has two profiles:
+The i3 display watcher matches displays through autorandr at login and on
+RandR hotplug events, without scanning other processes as root. The ThinkPad P14s Gen 5 has two profiles:
 
 - `p14s_default`: internal panel at native 3072×1920, 60 Hz, 144 DPI (150%).
 - `p14s_docked`: Sceptre monitor on `DP-1-2` at 3440×1440, 60 Hz,
   96 DPI (100%), with the laptop panel off.
 
 Each profile may supply an `xft-dpi` file; profiles without one use 96 DPI.
-The postswitch hooks update Xft and terminal fonts, and restart i3 when the
-DPI changes so its bars resize. Existing app windows may need reopening to
-pick up the new DPI. X11 font DPI is session-wide, so these profiles use one
+The postswitch hooks update Xft, terminal fonts, and xsettingsd, which
+broadcasts DPI changes to running GTK/Electron clients. They restart i3 when
+the DPI changes so its bars resize. Applications that cache their own scaling
+may still need a full quit and restart. X11 font DPI is session-wide, so these profiles use one
 active screen at a time.
 
 To reapply the matching profile manually, run `autorandr --change --force`.
 If changing the dock or monitor, configure the desired layout with `xrandr`
 and save a new profile with `autorandr --save PROFILE_NAME`.
+
+### Thunderbolt dock setup
+
+The `bolt` package manages trusted Thunderbolt devices. With the dock plugged
+in, run `boltctl list`, then enroll its UUID with
+`boltctl enroll --policy auto UUID`. Authorization is local to each computer;
+a dock trusted by the old laptop still needs enrolling on a new one.
+
+The `i3-display-watch.service` user service replaces the distribution's
+system-wide autorandr hotplug process scan. Once the user service is running,
+mask that system service with `sudo systemctl mask --now autorandr.service`.
+To revert, stop `i3-display-watch.service` and run
+`sudo systemctl unmask autorandr.service`.
 
 ## Status bar layout
 

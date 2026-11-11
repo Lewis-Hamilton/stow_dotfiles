@@ -1,0 +1,8 @@
+[Unit]
+Description=Switch autorandr profiles directly on X11 display events
+PartOf=i3-session.target
+
+[Service]
+ExecStart=%h/.local/bin/watch-displays
+Restart=on-failure
+RestartSec=2

@@ -1,0 +1,69 @@
+#!/usr/bin/python3
+"""Handle RandR hotplug in this session, avoiding autorandr's root /proc scan."""
+import ctypes
+import ctypes.util
+import signal
+import subprocess
+
+from gi.repository import GLib, GLibUnix
+
+
+def main():
+    x11 = ctypes.CDLL(ctypes.util.find_library('X11'))
+    randr = ctypes.CDLL(ctypes.util.find_library('Xrandr'))
+    x11.XOpenDisplay.argtypes = [ctypes.c_char_p]
+    x11.XOpenDisplay.restype = ctypes.c_void_p
+    x11.XDefaultRootWindow.argtypes = [ctypes.c_void_p]
+    x11.XDefaultRootWindow.restype = ctypes.c_ulong
+    x11.XConnectionNumber.argtypes = [ctypes.c_void_p]
+    x11.XConnectionNumber.restype = ctypes.c_int
+    x11.XPending.argtypes = [ctypes.c_void_p]
+    x11.XNextEvent.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
+    x11.XFlush.argtypes = [ctypes.c_void_p]
+    x11.XCloseDisplay.argtypes = [ctypes.c_void_p]
+    randr.XRRSelectInput.argtypes = [ctypes.c_void_p, ctypes.c_ulong, ctypes.c_int]
+    display = x11.XOpenDisplay(None)
+    if not display:
+        raise RuntimeError('Cannot open the X11 display')
+    # Screen, CRTC, and output changes include connected-but-disabled displays.
+    randr.XRRSelectInput(display, x11.XDefaultRootWindow(display), 1 | 2 | 4)
+    x11.XFlush(display)
+    pending = 0
+    loop = GLib.MainLoop()
+
+    def apply(force=False):
+        nonlocal pending
+        pending = 0
+        try:
+            result = subprocess.run(
+                ['autorandr', '--change', *(['--force'] if force else [])],
+                timeout=15, check=False)
+            if result.returncode:
+                print(f'autorandr exited {result.returncode}', flush=True)
+        except subprocess.TimeoutExpired:
+            print('autorandr timed out; waiting for the next display event', flush=True)
+        return GLib.SOURCE_REMOVE
+
+    def changed(*_):
+        nonlocal pending
+        event = ctypes.create_string_buffer(192)  # sizeof(XEvent) on x86_64
+        while x11.XPending(display):
+            x11.XNextEvent(display, event)
+        if pending:
+            GLib.source_remove(pending)
+        pending = GLib.timeout_add(300, apply)
+        return GLib.SOURCE_CONTINUE
+
+    GLib.io_add_watch(x11.XConnectionNumber(display), GLib.IO_IN, changed)
+    GLibUnix.signal_add(GLib.PRIORITY_DEFAULT, signal.SIGTERM,
+                         lambda: loop.quit() or GLib.SOURCE_REMOVE)
+    # Apply DPI on login even if the display layout is already correct.
+    GLib.idle_add(apply, True)
+    try:
+        loop.run()
+    finally:
+        x11.XCloseDisplay(display)
+
+
+if __name__ == '__main__':
+    main()

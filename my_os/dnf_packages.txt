@@ -26,6 +26,9 @@ syncthing
 picom
 xrandr
 autorandr
+xsettingsd
+# Remember authorized Thunderbolt docks and enable their USB controllers.
+bolt
 xmodmap
 feh
 

@@ -1,0 +1,8 @@
+[Unit]
+Description=Publish i3 display scaling to GTK and Electron applications
+PartOf=i3-session.target
+
+[Service]
+ExecStart=/usr/bin/xsettingsd -c %t/i3-ui-scale/xsettingsd.conf
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
