@@ -4,6 +4,33 @@ GNU Stow packages and Fedora workstation setup for this account. Run
 `~/.mega_setup.sh` after cloning and stowing `my_os` to install the normal
 user-level setup.
 
+## Display profiles and scaling
+
+Autorandr matches displays by their EDID and switches profiles at login and
+on monitor hotplug. The ThinkPad P14s Gen 5 has two profiles:
+
+- `p14s_default`: internal panel at native 3072×1920, 60 Hz, 144 DPI (150%).
+- `p14s_docked`: Sceptre monitor on `DP-1-2` at 3440×1440, 60 Hz,
+  96 DPI (100%), with the laptop panel off.
+
+Each profile may supply an `xft-dpi` file; profiles without one use 96 DPI.
+The postswitch hooks update Xft and terminal fonts, and restart i3 when the
+DPI changes so its bars resize. Existing app windows may need reopening to
+pick up the new DPI. X11 font DPI is session-wide, so these profiles use one
+active screen at a time.
+
+To reapply the matching profile manually, run `autorandr --change --force`.
+If changing the dock or monitor, configure the desired layout with `xrandr`
+and save a new profile with `autorandr --save PROFILE_NAME`.
+
+## Status bar layout
+
+The clock and notifications are centered automatically on the primary active
+display. The status wrapper measures the current font and block contents,
+then adjusts the gap before the right-hand system stats. When space is tight,
+the gap shrinks to keep the stats visible. Notification and tray clicks still
+go directly to i3blocks.
+
 ## Battery health
 
 At startup, `~/.local/bin/notify-battery-health` displays the current battery

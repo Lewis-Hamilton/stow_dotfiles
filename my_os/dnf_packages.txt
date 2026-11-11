@@ -48,6 +48,9 @@ papirus-icon-theme
 
 # ── i3blocks scripts ───────────────────────────────────────────────────────
 lm_sensors
+# Pango font measurements for automatic clock/notification centering.
+python3-gobject-base
+pango
 brightnessctl
 jq
 

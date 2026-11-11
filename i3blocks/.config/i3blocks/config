@@ -46,7 +46,9 @@ markup=pango
 command=echo " "
 interval=once
 separator=false
-min_width=900
+# Width is calculated by center-status.py.
+separator_block_width=0
+min_width=0
 
 [uptime]
 command=$SCRIPT_DIR/uptime/uptime

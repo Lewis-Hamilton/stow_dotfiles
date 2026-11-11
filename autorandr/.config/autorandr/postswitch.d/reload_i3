@@ -1,3 +1,13 @@
 #!/bin/bash
-
-i3-msg reload
+# i3 caches Xft.dpi; a reload alone cannot resize its bars after a DPI change.
+state_dir=${XDG_RUNTIME_DIR:-/tmp}/i3-display-$UID
+mkdir -p "$state_dir"
+chmod 700 "$state_dir"
+dpi=$(xrdb -query | awk '$1 == "Xft.dpi:" {print $2; exit}')
+previous_dpi=$(cat "$state_dir/dpi" 2>/dev/null || true)
+printf '%s\n' "$dpi" > "$state_dir/dpi"
+if [[ "$dpi" != "$previous_dpi" ]]; then
+    i3-msg restart
+else
+    i3-msg reload
+fi

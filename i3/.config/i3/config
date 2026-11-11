@@ -295,7 +295,7 @@ bar {
     urgent_workspace #ffffff #e22c3c #ffffff
     binding_mode       #2f343a #900000 #ffffff
   }
-  status_command SCRIPT_DIR=~/.config/i3blocks/scripts i3blocks -c ~/.config/i3blocks/config
+  status_command ~/.config/i3blocks/scripts/center-status.py
   
   # Disabling Scolling and clicking through workspaces
   # Want to force myself to use keybinds

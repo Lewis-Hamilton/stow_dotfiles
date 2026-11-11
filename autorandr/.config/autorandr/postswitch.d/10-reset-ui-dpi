@@ -1,6 +1,20 @@
 #!/bin/bash
-# Keep UI sizing at the normal X11 baseline for every display profile.
-xrdb -merge <<'EOF'
-Xft.dpi: 96
+# X11 has one font DPI for the session. Profiles can override the 96-DPI
+# baseline by supplying an xft-dpi file (e.g. 192 for the Lenovo panel).
+dpi=96
+if [[ -n ${AUTORANDR_PROFILE_FOLDER:-} && -r "$AUTORANDR_PROFILE_FOLDER/xft-dpi" ]]; then
+    read -r dpi < "$AUTORANDR_PROFILE_FOLDER/xft-dpi"
+fi
+if ! [[ $dpi =~ ^[0-9]+$ ]] || (( dpi < 72 || dpi > 384 )); then
+    echo "Invalid profile DPI: $dpi" >&2
+    exit 1
+fi
+
+# URxvt uses pixel fonts in .Xresources, so scale those explicitly as well.
+font_pixels=$(( (20 * dpi + 48) / 96 ))
+xrdb -merge <<EOF
+Xft.dpi: $dpi
+URxvt*font: xft:JetBrains Mono NFM SemiBold:pixelsize=$font_pixels,xft:Adwaita Mono:pixelsize=$font_pixels
 EOF
+# Avoid multiplying Xft DPI by a second text-only scaling factor.
 gsettings set org.gnome.desktop.interface text-scaling-factor 1.0
